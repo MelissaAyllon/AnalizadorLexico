@@ -2,13 +2,27 @@ import ply.lex as lex
 from reserved import reserved
 from logger import create_log_file
 
-tokens = ['NEWLINE', 'ID', 'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'INDENT', 'INDENT_OUT'] + list(reserved.values())
+tokens = ['NEWLINE', 'ID', # Identifier
+          'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', # Literals
+         ] + list(reserved.values()) 
 
 # CONTRIBUCION: MELISSA AYLLON
 def t_NEWLINE(t):
     r'\n+'
     t.type = 'NEWLINE'
     t.lexer.lineno += len(t.value)
+    return t
+
+# Ignorar espacios en blanco
+t_ignore = ' \t'
+
+def t_INDENT(t):
+    r'^\s+'  # Detecta espacios en blanco al inicio de una línea
+    t.value = len(t.value)  # Guarda la cantidad de espacios o tabulaciones
+    return t
+
+def t_DEDENT(t):
+    r'^\n\s*'  # Detecta el cambio de nivel de indentación (lógica simplificada)
     return t
 
 def t_ID(t):
