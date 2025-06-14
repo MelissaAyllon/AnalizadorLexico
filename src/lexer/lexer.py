@@ -6,28 +6,26 @@ tokens = ['NEWLINE', 'ID', # Identifier
           'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', # Literals
          ] + list(reserved.values()) 
 
+'''
+Reserved words are defined in reserved.py
+and imported here.
+
+Functions and literals are defined here for tokenization.
+The lexer will recognize these tokens in the input data.
+'''
+
 # CONTRIBUCION: MELISSA AYLLON
+t_ignore = ' \t'
+
 def t_NEWLINE(t):
     r'\n+'
     t.type = 'NEWLINE'
     t.lexer.lineno += len(t.value)
     return t
 
-# Ignorar espacios en blanco
-t_ignore = ' \t'
-
-def t_INDENT(t):
-    r'^\s+'  # Detecta espacios en blanco al inicio de una línea
-    t.value = len(t.value)  # Guarda la cantidad de espacios o tabulaciones
-    return t
-
-def t_DEDENT(t):
-    r'^\n\s*'  # Detecta el cambio de nivel de indentación (lógica simplificada)
-    return t
-
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    t.type = reserved.get(t.value,'ID')    # Check for reserved words
+    t.type = reserved.get(t.value,'ID')
     return t
 
 def t_NULLABLE(t):
@@ -78,13 +76,17 @@ def get_tokens(data):
     return tokens_list
 
 
-# Test it out
+
+'''
+# Example usage of the lexer
+Testing the lexer with a sample input
+and writing the tokens to a log file.
+'''
+
 data = '''
 function {} [] testFunction()
 hola
     melissa here
-  D
-OUT
 '''
 # Get tokens from lexico.py
 tokens_list = get_tokens(data)
