@@ -4,6 +4,7 @@ from logger import create_log_file
 
 tokens = ['NEWLINE', 'ID', # Identifier
           'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', # Literals
+          'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', # Operators
          ] + list(reserved.values()) 
 
 '''
@@ -59,6 +60,53 @@ def t_error(t):
     t.lexer.skip(1)
     return "'%s'" % t.value[0] + " (illegal character)"
 
+# CONTRIBUCION: NOELIA PASACA
+
+def t_CUSTOM_TYPE(t):
+    r'\b([A-Z][a-zA-Z0-9]*)\b'  # Identifiers that start with an uppercase letter
+    t.type = 'CUSTOM_TYPE'
+    return t
+
+# Operators
+def t_PLUS(t):
+    r'\+'
+    t.type = 'PLUS'
+    return t
+
+def t_MINUS(t):
+    r'-'
+    t.type = 'MINUS'
+    return t
+
+def t_TIMES(t):
+    r'\*'
+    t.type = 'TIMES'
+    return t
+
+def t_DIVIDE(t):
+    r'/'
+    t.type = 'DIVIDE'
+    return t
+
+def t_MOD(t):
+    r'%'
+    t.type = 'MOD'
+    return t
+
+def t_AND(t):
+    r'&&'
+    t.type = 'AND'
+    return t
+
+def t_OR(t):
+    r'\|\|'
+    t.type = 'OR'
+    return t
+
+def t_NOT(t):
+    r'!'
+    t.type = 'NOT'
+    return t
 
 def get_tokens(data):
     # Build the lexer
@@ -85,8 +133,9 @@ and writing the tokens to a log file.
 
 data = '''
 function {} [] testFunction()
-hola
-    melissa here
+bool isActive = true;
+List<int> numbers = [1, 2, 3, 4];
+CustomType myObject = new CustomType();
 '''
 # Get tokens from lexico.py
 tokens_list = get_tokens(data)

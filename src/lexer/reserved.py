@@ -39,6 +39,7 @@ declaration_keywords = {
     'operator': 'OPERATOR',
     'static': 'STATIC',
     'covariant': 'COVARIANT',
+    'List': 'LIST'
 }
 
 functions_reserved = {
