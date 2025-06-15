@@ -3,7 +3,7 @@ from reserved import reserved
 from logger import create_log_file
 
 tokens = ['NEWLINE', 'ID', # Identifier
-          'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA',  # Literals
+          'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA', 'DOT',  # Literals
           'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', # Operators
          ] + list(reserved.values()) 
 
@@ -89,7 +89,6 @@ def t_COMMENT_MULTI_LINE(t):
     # Multi-line comment, ignore it
     t.lexer.lineno += t.value.count('\n')
     pass
-
 
 # CONTRIBUCION: NOELIA PASACA
 def t_TIMES(t):
@@ -178,6 +177,11 @@ def t_RBRACE(t):
     t.type = 'RBRACE'
     return t
 
+# CONTRIBUCION: NOELIA PASACA
+def t_DOT(t):
+    r'\.'
+    t.type = 'DOT'
+    return t
 
 #--- Function to get tokens from input data
 def get_tokens(data):
@@ -195,29 +199,45 @@ def get_tokens(data):
         tokens_list.append(str(tok))  # Store the token as string
     return tokens_list
 
-
-
 '''
 # Example usage of the lexer
 Testing the lexer with a sample input
 and writing the tokens to a log file.
 '''
 
-data = '''
-function {} [] testFunction()
-bool isActive = true;
-List<int> numbers = [1, 2, 3, 4];
-List<double> numbers = [1.5, 2.3, 3.6, 4.7];
-String name = "Carlos Salazar";
-// This is a comment
-/*This is a 
-multi-line comment
-*/
-CustomType myObject = new CustomType();
-double result = 5 + 10 - 3 * 2 / 4 % 1;
-'''
-# Get tokens from lexico.py
-tokens_list = get_tokens(data)
+def read_dart_file(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"Error: file not found {file_path}")
+        return ""
+    except Exception as e:
+        print(f"Error reading file: {str(e)}")
+        return ""
 
-# Create log file and write tokens
-create_log_file(tokens_list)
+def process_dart_file(file_path):
+    """Process a Dart file and return the tokens found"""
+    data = read_dart_file(file_path)
+    if not data:
+        return []
+    return get_tokens(data)
+
+def main():
+    dart_files = [
+        "tests/dart_examples/algoritmo_noelia.dart",
+        "tests/dart_examples/algoritmo_melissa.dart",
+        "tests/dart_examples/algoritmo_carlos.dart"
+    ]
+
+    for file_path in dart_files:
+        print(f"\nProcesando archivo: {file_path}")
+        tokens_list = process_dart_file(file_path)
+        if tokens_list:
+            create_log_file(tokens_list, file_path)
+            print(f"Tokens encontrados: {len(tokens_list)}")
+        else:
+            print(f"No se pudieron procesar tokens para {file_path}")
+
+if __name__ == "__main__":
+    main()
