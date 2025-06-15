@@ -3,7 +3,7 @@ from reserved import reserved
 from logger import create_log_file
 
 tokens = ['NEWLINE', 'ID', # Identifier
-          'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', # Literals
+          'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA',  # Literals
           'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', # Operators
          ] + list(reserved.values()) 
 
@@ -78,6 +78,20 @@ def t_MINUS(t):
     t.type = 'MINUS'
     return t
 
+# CONTRIBUCION: CARLOS SALAZAR
+def t_COMMENT_SINGLE_LINE(t):
+    r'//.*'
+    # Single-line comment, ignore it
+    pass
+
+def t_COMMENT_MULTI_LINE(t):
+    r'/\*(.|\n)*?\*/'
+    # Multi-line comment, ignore it
+    t.lexer.lineno += t.value.count('\n')
+    pass
+
+
+# CONTRIBUCION: NOELIA PASACA
 def t_TIMES(t):
     r'\*'
     t.type = 'TIMES'
@@ -108,6 +122,64 @@ def t_NOT(t):
     t.type = 'NOT'
     return t
 
+# CONTRIBUCION: CARLOS SALAZAR
+
+def t_DOUBLE(t):
+    r'\b\d+\.\d+\b'  # Matches floating-point numbers
+    t.value = float(t.value)  # Convert to float
+    t.type = 'DOUBLE'
+    return t
+
+
+def t_INT(t):
+    r'\b\d+\b'  # Matches integers
+    t.value = int(t.value)  # Convert to integer
+    t.type = 'INT'
+    return t
+
+def t_STRING(t):
+    r'"([^"\\]*(\\.[^"\\]*)*)"'  # Matches double-quoted strings
+    t.value = t.value[1:-1]  # Remove the quotes
+    t.type = 'STRING'
+    return t
+
+def t_SEMI(t):
+    r';'
+    t.type = 'SEMI'
+    return t
+
+def t_ASSIGN(t):
+    r'='
+    t.type = 'ASSIGN'
+    return t
+
+def t_COMA(t):
+    r','
+    t.type = 'COMA'
+    return t
+
+def t_LT(t):
+    r'<'
+    t.type = 'LT'
+    return t
+
+def t_GT(t):
+    r'>'
+    t.type = 'GT'
+    return t
+
+def t_LBRACE(t):
+    r'\{'
+    t.type = 'LBRACE'
+    return t
+
+def t_RBRACE(t):
+    r'\}'
+    t.type = 'RBRACE'
+    return t
+
+
+#--- Function to get tokens from input data
 def get_tokens(data):
     # Build the lexer
     lexer = lex.lex()
@@ -135,7 +207,14 @@ data = '''
 function {} [] testFunction()
 bool isActive = true;
 List<int> numbers = [1, 2, 3, 4];
+List<double> numbers = [1.5, 2.3, 3.6, 4.7];
+String name = "Carlos Salazar";
+// This is a comment
+/*This is a 
+multi-line comment
+*/
 CustomType myObject = new CustomType();
+double result = 5 + 10 - 3 * 2 / 4 % 1;
 '''
 # Get tokens from lexico.py
 tokens_list = get_tokens(data)
