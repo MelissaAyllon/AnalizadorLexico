@@ -2,6 +2,13 @@ import ply.yacc as yacc
 from lexer import tokens
 
 # --- Grammar Rules ---
+precedence = (
+    ('left', 'OR', 'AND'),    # 'OR' and 'AND' are left-associative
+    ('left', 'PLUS', 'MINUS'),  # 'PLUS' and 'MINUS' are left-associative
+    ('left', 'TIMES', 'DIVIDE'),  # 'TIMES' and 'DIVIDE' are left-associative
+    ('right', 'NOT'),          # 'NOT' is right-associative
+)
+
 
 # Asignacion de variables (Generalizada)
 def p_statement_assign(p):
@@ -17,6 +24,12 @@ def p_statement_assign(p):
         variable_type = 'String'
     print(f"Declarando variable '{variable_type}' llamada '{p[2]}' con valor {p[4]}")
 
+# Regla para el condicional if
+def p_statement_if(p):
+    '''statement : IF LPAREN expression RPAREN LBRACE statement RBRACE
+                 | IF LPAREN expression RPAREN LBRACE statement RBRACE ELSE LBRACE statement RBRACE'''
+    print("Condicional 'if' encontrado")
+    
 # Rule for numeric expressions
 def p_expression_number(p):
     '''expression : INT
@@ -38,27 +51,30 @@ def p_expression_number(p):
 
 # Rule for string expressions (concatenation)
 def p_expression_string(p):
-    '''expression : STRING
-                  | expression PLUS STRING'''
+    '''expression : STRING'''
     if len(p) == 2:  # Base case: just a string
         p[0] = p[1]
-    elif len(p) == 4:  # Concatenation
-        p[0] = p[1] + p[3]
 
 # Rule for boolean expressions
 def p_expression_boolean(p):
-    '''expression : BOOL
+    '''expression : TRUE
+                  | FALSE
                   | expression AND expression
                   | expression OR expression
                   | NOT expression'''
     if len(p) == 2:  # Base case: just a boolean literal
-        p[0] = p[1] == 'true'
+        p[0] = p[1] == 'true'  # 'TRUE' becomes True, 'FALSE' becomes False
     elif p[2] == '&&':  # Logical AND
         p[0] = p[1] and p[3]
     elif p[2] == '||':  # Logical OR
         p[0] = p[1] or p[3]
     elif p[1] == '!':  # Logical NOT
         p[0] = not p[2]
+
+# Rule for grouping expressions (use parentheses to group expressions)
+def p_expression_group(p):
+    'expression : LPAREN expression RPAREN'
+    p[0] = p[2]
 
 def p_error(p):
     if p:
