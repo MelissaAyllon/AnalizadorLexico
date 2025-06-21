@@ -183,6 +183,8 @@ def t_DOT(t):
     t.type = 'DOT'
     return t
 
+# Crear el objeto lexer global: para que reconozca el parser
+lexer = lex.lex()
 #--- Function to get tokens from input data
 def get_tokens(data):
     # Build the lexer
