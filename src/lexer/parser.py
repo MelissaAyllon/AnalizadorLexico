@@ -1,16 +1,6 @@
 import ply.yacc as yacc
 from lexer import tokens
 
-# --- Parser Rules ---
-
-# Handle numeric expressions
-def handle_number(p):
-    p[0] = p[1]
-
-# Handle string expressions
-def handle_string(p):
-    p[0] = p[1]
-
 # --- Grammar Rules ---
 
 # Asignacion de variables (Generalizada)
@@ -27,15 +17,48 @@ def p_statement_assign(p):
         variable_type = 'String'
     print(f"Declarando variable '{variable_type}' llamada '{p[2]}' con valor {p[4]}")
 
-# Asignacion de expresiones (Generalizada)
-def p_expression(p):
+# Rule for numeric expressions
+def p_expression_number(p):
     '''expression : INT
-                  | STRING'''
-    if isinstance(p[1], int):
-        handle_number(p)
-    elif isinstance(p[1], str):
-        handle_string(p)
+                  | expression PLUS expression
+                  | expression MINUS expression
+                  | expression TIMES expression
+                  | expression DIVIDE expression'''
+    if len(p) == 2:  # Base case: just a number
+        p[0] = p[1]
+    else:  # If it's an operation, perform it
+        if p[2] == '+':
+            p[0] = p[1] + p[3]
+        elif p[2] == '-':
+            p[0] = p[1] - p[3]
+        elif p[2] == '*':
+            p[0] = p[1] * p[3]
+        elif p[2] == '/':
+            p[0] = p[1] / p[3]
 
+# Rule for string expressions (concatenation)
+def p_expression_string(p):
+    '''expression : STRING
+                  | expression PLUS STRING'''
+    if len(p) == 2:  # Base case: just a string
+        p[0] = p[1]
+    elif len(p) == 4:  # Concatenation
+        p[0] = p[1] + p[3]
+
+# Rule for boolean expressions
+def p_expression_boolean(p):
+    '''expression : BOOL
+                  | expression AND expression
+                  | expression OR expression
+                  | NOT expression'''
+    if len(p) == 2:  # Base case: just a boolean literal
+        p[0] = p[1] == 'true'
+    elif p[2] == '&&':  # Logical AND
+        p[0] = p[1] and p[3]
+    elif p[2] == '||':  # Logical OR
+        p[0] = p[1] or p[3]
+    elif p[1] == '!':  # Logical NOT
+        p[0] = not p[2]
 
 def p_error(p):
     if p:
