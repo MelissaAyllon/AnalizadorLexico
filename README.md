@@ -1,28 +1,86 @@
-# AnalizadorLexico
+# Analizador Léxico y Sintáctico para Dart
 
-## Descripción
+Este proyecto implementa un analizador léxico y sintáctico para el lenguaje Dart utilizando Python y la biblioteca PLY.
 
-Este proyecto implementa un analizador léxico y sintáctico utilizando **PLY (Python Lex-Yacc)** para procesar lenguaje dart. El objetivo es crear un sistema que pueda analizar y evaluar expresiones.
+## Configuración del Entorno Virtual
 
-## Características
+### 1. Crear el entorno virtual
+```bash
+python3 -m venv venv
+```
 
-- Analizador léxico basado en PLY.
-- Pruebas unitarias para asegurar el correcto funcionamiento del lexer y parser.
+### 2. Activar el entorno virtual
+```bash
+# En macOS/Linux
+source venv/bin/activate
 
-## Requisitos
+# En Windows
+venv\Scripts\activate
+```
 
-- Python 3.x
-- PLY (Python Lex-Yacc)
-- pytest (para pruebas)
+### 3. Instalar dependencias
+```bash
+pip install -r requirements.txt
+```
 
-## Instalación
+### 4. Desactivar el entorno virtual (cuando termines)
+```bash
+deactivate
+```
 
-1. Clona el repositorio en tu máquina local:
+## Uso
 
-   ```bash
-   git clone https://github.com/usuario/nombre-del-repositorio.git
-   cd AnalizadorLexico
+### Analizador Léxico
+```bash
+python src/lexer/lexer.py
+```
 
-2. Instala las dependencias
-    ```bash
-    pip install -r requirements.txt
+### Analizador Sintáctico
+```bash
+python src/lexer/parser.py
+```
+
+## Estructura del Proyecto
+
+```
+AnalizadorLexico/
+├── src/
+│   └── lexer/
+│       ├── lexer.py      # Analizador léxico
+│       ├── parser.py     # Analizador sintáctico
+│       ├── logger.py     # Funciones de logging
+│       └── reserved.py   # Palabras reservadas
+├── tests/
+│   ├── dart_examples/    # Archivos de prueba Dart
+│   └── logs/            # Archivos de log generados
+├── requirements.txt     # Dependencias del proyecto
+└── README.md           # Este archivo
+```
+
+## Características Implementadas
+
+### Analizador Léxico
+- Reconocimiento de tokens básicos (identificadores, números, strings)
+- Palabras reservadas de Dart
+- Operadores y símbolos especiales
+- Comentarios (línea única y múltiples líneas)
+
+### Analizador Sintáctico
+- Declaraciones de variables (var, final, String)
+- Expresiones aritméticas y booleanas
+- Estructuras de control (if, while, for)
+- Declaraciones de funciones y clases
+- Listas, Maps y Sets
+- Tipos de datos (int, double, bool, String)
+
+## Contribuciones
+
+- **Carlos Salazar**: Funciones básicas del lexer y parser
+- **Melissa Ayllon**: Operadores y estructuras de control
+- **Noelia Pasaca**: For loops, Maps, Sets, Double y procesamiento de archivos
+
+## Logs
+
+Los archivos de log se generan automáticamente en `tests/logs/` con el formato:
+- Léxico: `lexico-{username}-{timestamp}-{filename}.txt`
+- Sintáctico: `sintactico-{username}-{timestamp}-{filename}.txt`
