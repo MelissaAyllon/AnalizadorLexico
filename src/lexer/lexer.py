@@ -4,7 +4,7 @@ from logger import create_log_file
 
 tokens = ['NEWLINE', 'ID', # Identifier
           'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA', 'DOT',  # Literals
-          'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', # Operators
+          'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', 'EQ', 'NEQ' # Operators
          ] + list(reserved.values()) 
 
 '''
@@ -91,6 +91,16 @@ def t_COMMENT_MULTI_LINE(t):
     pass
 
 # CONTRIBUCION: NOELIA PASACA
+def t_EQ(t):
+    r'=='
+    t.type = 'EQ'
+    return t    
+
+def t_NEQ(t):
+    r'!='
+    t.type = 'NEQ'
+    return t
+
 def t_TIMES(t):
     r'\*'
     t.type = 'TIMES'
@@ -120,6 +130,8 @@ def t_NOT(t):
     r'!'
     t.type = 'NOT'
     return t
+
+
 
 # CONTRIBUCION: CARLOS SALAZAR
 

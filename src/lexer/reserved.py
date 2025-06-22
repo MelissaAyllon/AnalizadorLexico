@@ -39,7 +39,8 @@ declaration_keywords = {
     'operator': 'OPERATOR',
     'static': 'STATIC',
     'covariant': 'COVARIANT',
-    'List': 'LIST'
+    'List': 'LIST',
+    'print': 'PRINT',
 }
 
 functions_reserved = {
@@ -60,6 +61,10 @@ libraries_reserved = {
     'deferred': 'DEFERRED',
     'show': 'SHOW',
     'hide': 'HIDE',
+    'stdin': 'STDIN',
+    'stdout': 'STDOUT',
+    'stderr': 'STDERR',
+    'readLineSync': 'READLINESYNC',
 }
 
 other_reserved = {
