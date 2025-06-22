@@ -3,7 +3,7 @@ from reserved import reserved
 from logger import create_log_file
 
 tokens = ['NEWLINE', 'ID', # Identifier
-          'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA', 'DOT',  # Literals
+          'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA', 'DOT', 'COLON',  # Literals
           'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', 'EQ', 'NEQ' # Operators
          ] + list(reserved.values()) 
 
@@ -193,6 +193,12 @@ def t_RBRACE(t):
 def t_DOT(t):
     r'\.'
     t.type = 'DOT'
+    return t
+
+# CONTRIBUCION: NOELIA PASACA
+def t_COLON(t):
+    r':'
+    t.type = 'COLON'
     return t
 
 # Crear el objeto lexer global: para que reconozca el parser

@@ -134,15 +134,104 @@ def p_statement_while(p):
     '''statement : WHILE LPAREN expression RPAREN LBRACE statement RBRACE'''
     print("Bucle 'while' encontrado")
 
+# CONTRIBUCION: NOELIA PASACA
 
-# Rule for for class
-    
+# Rule for for statement (traditional for loop)
+def p_statement_for_traditional(p):
+    '''statement : FOR LPAREN for_init SEMI expression SEMI for_update RPAREN LBRACE statement RBRACE'''
+    print("Bucle 'for' tradicional encontrado")
+
+# Rule for for-in statement (for each loop)
+def p_statement_for_in(p):
+    '''statement : FOR LPAREN VAR ID IN expression RPAREN LBRACE statement RBRACE'''
+    print(f"Bucle 'for-in' encontrado, iterando sobre '{p[4]}' en {p[6]}")
+
+# Rule for for initialization
+def p_for_init(p):
+    '''for_init : VAR ID ASSIGN expression
+                | type ID ASSIGN expression
+                | expression'''
+    if len(p) == 5:
+        print(f"Inicialización de variable '{p[2]}' con valor {p[4]}")
+    else:
+        p[0] = p[1]
+
+# Rule for for update
+def p_for_update(p):
+    '''for_update : ID PLUS PLUS
+                  | ID MINUS MINUS
+                  | ID ASSIGN expression'''
+    if p[2] == '++':
+        print(f"Incremento de variable '{p[1]}'")
+    elif p[2] == '--':
+        print(f"Decremento de variable '{p[1]}'")
+    else:
+        print(f"Actualización de variable '{p[1]}' con valor {p[3]}")
+
+# Rule for Map declaration
+def p_statement_map(p):
+    '''statement : MAP LT type COMA type GT ID ASSIGN LBRACE map_entries RBRACE SEMI
+                 | MAP LT type COMA type GT ID ASSIGN LBRACE RBRACE SEMI'''
+    if len(p) == 12:  # Empty map
+        print(f"Declarando mapa vacío '{p[7]}' de tipo {p[2]}<{p[3]}, {p[5]}>")
+    else:  # Map with entries
+        print(f"Declarando mapa '{p[7]}' de tipo {p[2]}<{p[3]}, {p[5]}> con entradas {p[10]}")
+
+# Rule for map entries
+def p_map_entries(p):
+    '''map_entries : map_entry COMA map_entries
+                   | map_entry'''
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+# Rule for single map entry
+def p_map_entry(p):
+    '''map_entry : expression COLON expression'''
+    p[0] = (p[1], p[3])
+
+# Rule for Set declaration
+def p_statement_set(p):
+    '''statement : SET LT type GT ID ASSIGN LBRACE set_elements RBRACE SEMI
+                 | SET LT type GT ID ASSIGN LBRACE RBRACE SEMI'''
+    if len(p) == 11:  # Empty set
+        print(f"Declarando conjunto vacío '{p[6]}' de tipo Set<{p[3]}>")
+    else:  # Set with elements
+        print(f"Declarando conjunto '{p[6]}' de tipo Set<{p[3]}> con elementos {p[9]}")
+
+# Rule for set elements
+def p_set_elements(p):
+    '''set_elements : expression COMA set_elements
+                    | expression'''
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+# Rule for double expressions
+def p_expression_double(p):
+    '''expression : DOUBLE
+                  | expression PLUS DOUBLE
+                  | expression MINUS DOUBLE
+                  | expression TIMES DOUBLE
+                  | expression DIVIDE DOUBLE
+                  | DOUBLE PLUS expression
+                  | DOUBLE MINUS expression
+                  | DOUBLE TIMES expression
+                  | DOUBLE DIVIDE expression'''
+    if len(p) == 2:  # Base case: just a double
+        p[0] = p[1]
+    else:  # If it's an operation, perform it
+        if p[2] == '+':
+            p[0] = p[1] + p[3]
+        elif p[2] == '-':
+            p[0] = p[1] - p[3]
+        elif p[2] == '*':
+            p[0] = p[1] * p[3]
+        elif p[2] == '/':
+            p[0] = p[1] / p[3]
+
+# Rule for class body with single or multiple statements
+                  
 def p_statement_class(p):
     '''statement : CLASS ID LBRACE class_body RBRACE'''
     print(f"Definiendo clase '{p[2]}' con cuerpo {p[4]}")
 
-# Rule for class body with single or multiple statements
-                  
 def p_class_body_single(p):
     'class_body : statement'
     p[0] = [p[1]]  

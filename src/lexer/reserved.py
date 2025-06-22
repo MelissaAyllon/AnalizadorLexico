@@ -40,6 +40,8 @@ declaration_keywords = {
     'static': 'STATIC',
     'covariant': 'COVARIANT',
     'List': 'LIST',
+    'Map': 'MAP',
+    'Set': 'SET',
     'print': 'PRINT',
 }
 
