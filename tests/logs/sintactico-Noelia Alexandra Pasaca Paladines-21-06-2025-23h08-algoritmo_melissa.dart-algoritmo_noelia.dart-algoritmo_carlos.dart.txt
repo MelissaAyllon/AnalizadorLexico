@@ -1,0 +1,40 @@
+=== ANÁLISIS SINTÁCTICO ===
+--------------------------------------------------
+Archivos procesados: tests/dart_examples/algoritmo_melissa.dart, tests/dart_examples/algoritmo_noelia.dart, tests/dart_examples/algoritmo_carlos.dart
+--------------------------------------------------
+Línea 1: Error de sintaxis en 'bool'
+Línea 2: Error de sintaxis en 'return'
+Línea 3: Error de sintaxis en '}'
+Línea 5: Error de sintaxis en la entrada
+Línea 6: Error de sintaxis en 'int'
+Línea 7: Error de sintaxis en 'esMayorDeEdad'
+Línea 8: Imprimiendo: Eres mayor de edad
+Línea 9: Error de sintaxis en '}'
+Línea 10: Imprimiendo: Eres menor de edad
+Línea 11: Error de sintaxis en '}'
+Línea 12: Error de sintaxis en '}'
+Línea 1: Error de sintaxis en la entrada
+Línea 3: Error de sintaxis en 'double'
+Línea 4: Error de sintaxis en 'double'
+Línea 5: Error de sintaxis en 'double'
+Línea 8: Inicialización de variable 'i' con valor 0
+Error de sintaxis en 'i'
+Línea 9: Imprimiendo: Número: $i
+Línea 10: Error de sintaxis en '}'
+Línea 13: Declarando lista 'numbers' con elementos [1, 2, 3, 4, 5]
+Línea 14: Error de sintaxis en 'numbers'
+Línea 15: Imprimiendo: Valor: $num
+Línea 16: Error de sintaxis en '}'
+Línea 19: Declarando mapa 'ages' de tipo <<None, None> con entradas [('Alice', 25), ('Bob', 30), ('Charlie', 35)]
+Línea 20: Declarando mapa vacío 'cities' de tipo <<None, None>
+Línea 23: Declarando conjunto vacío '=' de tipo Set<None>
+Línea 24: Declarando conjunto vacío '=' de tipo Set<None>
+Línea 25: Declarando conjunto '=' de tipo Set<None> con elementos ;
+Línea 26: Error de sintaxis en '}'
+Línea 1: Error de sintaxis en 'int'
+Línea 2: Error de sintaxis en 'return'
+Línea 3: Error de sintaxis en '}'
+Línea 5: Error de sintaxis en la entrada
+Línea 6: Error de sintaxis en 'int'
+Línea 7: Imprimiendo: El resultado de la suma es: \$resultado
+Línea 8: Error de sintaxis en '}'

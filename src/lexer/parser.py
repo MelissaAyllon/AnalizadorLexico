@@ -1,5 +1,7 @@
 import ply.yacc as yacc
 from lexer import tokens
+from logger import process_test_directory_parser, create_parser_log_file
+import os
 
 # --- Grammar Rules ---
 precedence = (
@@ -262,11 +264,21 @@ def p_param(p):
 
 parser = yacc.yacc()
 
-while True:
-   try:
-       s = input('dart > ')
-   except EOFError:
-       break
-   if not s: continue
-   result = parser.parse(s)
-   print(result)
+def main():
+    """Función principal que procesa archivos de prueba y crea logs"""
+    print("=== Analizador Sintáctico para Dart ===")
+    
+    # Procesar todos los archivos de prueba
+    results = process_test_directory_parser(parser)
+    
+    if results:
+        # Crear archivo de log con los resultados
+        test_dir = "tests/dart_examples"
+        dart_files = [os.path.join(test_dir, f) for f in os.listdir(test_dir) if f.endswith('.dart')]
+        create_parser_log_file(results, dart_files)
+        print(f"Total de resultados procesados: {len(results)}")
+    else:
+        print("No se encontraron resultados para procesar")
+
+if __name__ == "__main__":
+    main()
