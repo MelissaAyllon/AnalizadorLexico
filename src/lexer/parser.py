@@ -289,12 +289,21 @@ def main():
         print("No se encontraron resultados para procesar")
 
 if __name__ == "__main__":
-    #main()
-    while True:
-        try:
-            s = input('dart > ')
-        except EOFError:
-            break
-        if not s: continue
-        result = parser.parse(s)
-        print(result)
+    user_input = input("Para correr el parser de los algoritmos definidos presiona 1 o si quieres inline dart presiona 2 > ")    
+    if user_input == '1':
+        main()
+    elif user_input == '2':
+        print("=== Analizador Sintáctico en Línea ===")
+        print("Escribe tu código Dart y presiona Enter. Para salir, usa Ctrl+D (EOF).")
+        while True:
+            try:
+                s = input("dart > ")
+            except EOFError:
+                break
+            if not s: continue
+            result = parser.parse(s)
+            print(result)
+    else:
+        print("Opción no válida. Saliendo...")
+        exit(1)
+    
