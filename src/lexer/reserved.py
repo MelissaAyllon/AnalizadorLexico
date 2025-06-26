@@ -51,7 +51,7 @@ functions_reserved = {
     'sync': 'SYNC',
     'factory': 'FACTORY',
     'get': 'GET',
-    'set': 'SET',
+    'set': 'SET_FUNCTION',
     'function': 'FUNCTION',
 }
 
