@@ -84,6 +84,14 @@ def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
     p[0] = p[2]
 
+def p_expression_id(p):
+    'expression : ID'
+    p[0] = p[1]
+
+def p_expression_attribute(p):
+    'expression : expression DOT ID'
+    print(f"Accediendo al atributo '{p[3]}' de {p[1]}")
+
 def p_error(p):
     if p:
         print(f"Error de sintaxis en '{p.value}'")
@@ -281,4 +289,12 @@ def main():
         print("No se encontraron resultados para procesar")
 
 if __name__ == "__main__":
-    main()
+    #main()
+    while True:
+        try:
+            s = input('dart > ')
+        except EOFError:
+            break
+        if not s: continue
+        result = parser.parse(s)
+        print(result)
