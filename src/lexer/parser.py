@@ -26,33 +26,32 @@ def p_statement_assign(p):
     '''statement : VAR ID ASSIGN expression SEMI  
                  | FINAL ID ASSIGN expression SEMI
                  | STRING_TYPE ID ASSIGN expression SEMI
+                 | INT_TYPE ID ASSIGN expression SEMI
+                 | DOUBLE_TYPE ID ASSIGN expression SEMI
+                 | BOOL_TYPE ID ASSIGN expression SEMI
     ''' 
-    if p[1] == 'var':
-        variable_type = 'var'
-    elif p[1] == 'final':
-        variable_type = 'final'
-    elif p[1] == 'String':
-        variable_type = 'String'
-    
-    nombre_variable = p[2]
-    valor_variable = p[4]
+    # Verificar si la variable ya existe
+    if p[2] in tabla_simbolos['var']:
+        raise SyntaxError(f"La variable '{p[2]}' ya ha sido declarada.")
 
-    # --- Semantic type checking ---
-    # Infer type of the assigned value
-    if isinstance(valor_variable, int):
-        value_type = 'int'
-    elif isinstance(valor_variable, float):
-        value_type = 'double'
-    elif isinstance(valor_variable, str):
-        value_type = 'String'
-    elif isinstance(valor_variable, bool):
-        value_type = 'bool'
+    tipo_variable = p[1]
+    # Verificar el tipo y valor asignado concuerden
+    if tipo_variable == 'var':
+        tabla_simbolos['var'][p[2]] = tipo_variable
+    elif tipo_variable == 'final':
+        tabla_simbolos['var'][p[2]] = p[4]  # Asignar el valor directamente
+    elif isinstance(p[4], str) and tipo_variable == 'String':
+        tabla_simbolos['var'][p[2]] = tipo_variable
+    elif isinstance(p[4], int) and tipo_variable == 'int':
+        tabla_simbolos['var'][p[2]] = tipo_variable
+    elif isinstance(p[4], float) and tipo_variable == 'double':
+        tabla_simbolos['var'][p[2]] = tipo_variable
+    elif isinstance(p[4], bool) and tipo_variable == 'bool':
+        tabla_simbolos['var'][p[2]] = tipo_variable
     else:
-        value_type = 'unknown'
-    
-    
-    tabla_simbolos["var"][nombre_variable] = value_type
-    print(f"Declarando variable '{variable_type}' llamada '{nombre_variable}' con valor {valor_variable} (tipo detectado: {value_type})")
+        raise TypeError(f"Tipo de dato incompatible para la variable '{p[2]}': se esperaba {tipo_variable}, pero se recibió {type(p[4]).__name__}")
+    print(f"Variable '{p[2]}' declarada con tipo '{tipo_variable}' y valor '{p[4]}'")
+    print(f"Tabla de símbolos actualizada: {tabla_simbolos['var']}")
 # Regla para el condicional if
 def p_statement_if(p):
     '''statement : IF LPAREN expression RPAREN LBRACE statement RBRACE
