@@ -1,7 +1,16 @@
+from matplotlib.pylab import var
 import ply.yacc as yacc
 from lexer import tokens
 from logger import process_test_directory_parser, create_parser_log_file
 import os
+
+tabla_simbolos = {
+    'var': {},
+    "tipos": {
+        "str_functions": ["toUpperCase", "toLowerCase", "substring", "length"],
+    }
+}
+
 
 # --- Grammar Rules ---
 precedence = (
@@ -16,7 +25,7 @@ precedence = (
 def p_statement_assign(p):
     '''statement : VAR ID ASSIGN expression SEMI  
                  | FINAL ID ASSIGN expression SEMI
-                 | STRING ID ASSIGN expression SEMI
+                 | STRING_TYPE ID ASSIGN expression SEMI
     ''' 
     if p[1] == 'var':
         variable_type = 'var'
@@ -24,8 +33,26 @@ def p_statement_assign(p):
         variable_type = 'final'
     elif p[1] == 'String':
         variable_type = 'String'
-    print(f"Declarando variable '{variable_type}' llamada '{p[2]}' con valor {p[4]}")
+    
+    nombre_variable = p[2]
+    valor_variable = p[4]
 
+    # --- Semantic type checking ---
+    # Infer type of the assigned value
+    if isinstance(valor_variable, int):
+        value_type = 'int'
+    elif isinstance(valor_variable, float):
+        value_type = 'double'
+    elif isinstance(valor_variable, str):
+        value_type = 'String'
+    elif isinstance(valor_variable, bool):
+        value_type = 'bool'
+    else:
+        value_type = 'unknown'
+    
+    
+    tabla_simbolos["var"][nombre_variable] = value_type
+    print(f"Declarando variable '{variable_type}' llamada '{nombre_variable}' con valor {valor_variable} (tipo detectado: {value_type})")
 # Regla para el condicional if
 def p_statement_if(p):
     '''statement : IF LPAREN expression RPAREN LBRACE statement RBRACE
@@ -127,10 +154,10 @@ def p_statement_List(p):
         print(f"Declarando lista '{p[5]}' con elementos {p[8]}")
         
 def p_statement_type(p):
-    '''type : INT
-            | STRING
-            | BOOL
-            | DOUBLE
+    '''type : INT_TYPE
+            | STRING_TYPE
+            | BOOL_TYPE
+            | DOUBLE_TYPE
             | CUSTOM_TYPE
             | VAR'''
 def p_List_expression(p):

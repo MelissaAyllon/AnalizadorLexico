@@ -4,7 +4,8 @@ from logger import create_log_file
 
 tokens = ['NEWLINE', 'ID', # Identifier
           'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA', 'DOT', 'COLON',  # Literals
-          'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', 'EQ', 'NEQ' # Operators
+          'CUSTOM_TYPE', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD', 'AND', 'OR', 'NOT', 'EQ', 'NEQ', # Operators
+            'INT', 'DOUBLE', 'STRING', 'BOOL', # Data types
          ] + list(reserved.values()) 
 
 '''
@@ -152,6 +153,12 @@ def t_STRING(t):
     r'"([^"\\]*(\\.[^"\\]*)*)"'  # Matches double-quoted strings
     t.value = t.value[1:-1]  # Remove the quotes
     t.type = 'STRING'
+    return t
+
+def t_BOOL(t):
+    r'\b(true|false)\b'  # Matches boolean literals
+    t.value = (t.value == 'true')  # Convert to boolean
+    t.type = 'BOOL'
     return t
 
 def t_SEMI(t):
