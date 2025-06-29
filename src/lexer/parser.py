@@ -8,7 +8,8 @@ tabla_simbolos = {
     'var': {},
     "tipos": {
         "str_functions": ["toUpperCase", "toLowerCase", "substring", "length"],
-    }
+    },
+    "clases": {}
 }
 
 
@@ -20,38 +21,66 @@ precedence = (
     ('right', 'NOT'),          # 'NOT' is right-associative
 )
 
+# Contribuido por: MELISSA AYLLON
+def p_statement_class(p):
+    '''statement : CLASS ID LBRACE class_body RBRACE'''
+    nombre_clase = p[2]
+    if nombre_clase not in tabla_simbolos['clases']:
+        tabla_simbolos['clases'][nombre_clase] = {'atributos': [], 'metodos': []}
+    print(tabla_simbolos['clases'])
+    print(f"Definiendo clase '{nombre_clase}' con cuerpo {p[4]}")
 
+def p_type(p):
+    '''type : INT_TYPE
+            | STRING_TYPE
+            | BOOL_TYPE
+            | DOUBLE_TYPE
+            | ID
+            '''
+    if p.slice[1].type == 'ID':
+        if p[1] not in tabla_simbolos['clases']:
+            raise TypeError(f"El tipo personalizado '{p[1]}' no está definido como clase.")
+    p[0] = p[1]
+    
 # Asignacion de variables (Generalizada)
 def p_statement_assign(p):
-    '''statement : VAR ID ASSIGN expression SEMI  
+    '''statement : type ID ASSIGN expression SEMI
+                 | VAR ID ASSIGN expression SEMI
                  | FINAL ID ASSIGN expression SEMI
-                 | STRING_TYPE ID ASSIGN expression SEMI
-                 | INT_TYPE ID ASSIGN expression SEMI
-                 | DOUBLE_TYPE ID ASSIGN expression SEMI
-                 | BOOL_TYPE ID ASSIGN expression SEMI
-    ''' 
-    # Verificar si la variable ya existe
-    if p[2] in tabla_simbolos['var']:
-        raise SyntaxError(f"La variable '{p[2]}' ya ha sido declarada.")
-
+                 | ID ID ASSIGN NEW ID LPAREN RPAREN SEMI
+    '''
     tipo_variable = p[1]
-    # Verificar el tipo y valor asignado concuerden
+    nombre_variable = p[2]
+    valor = p[4]
+
+    # Verificar si la variable ya existe
+    if nombre_variable in tabla_simbolos['var']:
+        raise NameError(f"La variable '{nombre_variable}' ya ha sido declarada.")
+
+    # Verificación de tipo para tipos reservados
     if tipo_variable == 'var':
-        tabla_simbolos['var'][p[2]] = tipo_variable
+        tipo_inferido = type(valor).__name__
+        tabla_simbolos['var'][nombre_variable] = {'type': tipo_inferido, 'value': valor}
     elif tipo_variable == 'final':
-        tabla_simbolos['var'][p[2]] = p[4]  # Asignar el valor directamente
-    elif isinstance(p[4], str) and tipo_variable == 'String':
-        tabla_simbolos['var'][p[2]] = tipo_variable
-    elif isinstance(p[4], int) and tipo_variable == 'int':
-        tabla_simbolos['var'][p[2]] = tipo_variable
-    elif isinstance(p[4], float) and tipo_variable == 'double':
-        tabla_simbolos['var'][p[2]] = tipo_variable
-    elif isinstance(p[4], bool) and tipo_variable == 'bool':
-        tabla_simbolos['var'][p[2]] = tipo_variable
+        tabla_simbolos['var'][nombre_variable] = {'type': 'final', 'value': valor}
+    elif tipo_variable == 'String' and not isinstance(valor, str):
+        raise TypeError(f"Se esperaba String para '{nombre_variable}', pero se recibió {type(valor).__name__}")
+    elif tipo_variable == 'int' and not isinstance(valor, int):
+        raise TypeError(f"Se esperaba int para '{nombre_variable}', pero se recibió {type(valor).__name__}")
+    elif tipo_variable == 'double' and not isinstance(valor, float):
+        raise TypeError(f"Se esperaba double para '{nombre_variable}', pero se recibió {type(valor).__name__}")
+    elif tipo_variable == 'bool' and not isinstance(valor, bool):
+        raise TypeError(f"Se esperaba bool para '{nombre_variable}', pero se recibió {type(valor).__name__}")
+    # Verificación para tipos personalizados (clases)
+    elif tipo_variable in tabla_simbolos['clases']:
+        # Aquí podrías agregar lógica para verificar que valor sea una instancia válida
+        tabla_simbolos['var'][nombre_variable] = {'type': tipo_variable, 'value': valor}
     else:
-        raise TypeError(f"Tipo de dato incompatible para la variable '{p[2]}': se esperaba {tipo_variable}, pero se recibió {type(p[4]).__name__}")
-    print(f"Variable '{p[2]}' declarada con tipo '{tipo_variable}' y valor '{p[4]}'")
+        tabla_simbolos['var'][nombre_variable] = {'type': tipo_variable, 'value': valor}
+
+    print(f"Variable '{nombre_variable}' declarada con tipo '{tipo_variable}' y valor '{valor}'")
     print(f"Tabla de símbolos actualizada: {tabla_simbolos['var']}")
+
 # Regla para el condicional if
 def p_statement_if(p):
     '''statement : IF LPAREN expression RPAREN LBRACE statement RBRACE
@@ -152,18 +181,10 @@ def p_statement_List(p):
     elif len(p) > 10:  # List with elements
         print(f"Declarando lista '{p[5]}' con elementos {p[8]}")
         
-def p_statement_type(p):
-    '''type : INT_TYPE
-            | STRING_TYPE
-            | BOOL_TYPE
-            | DOUBLE_TYPE
-            | CUSTOM_TYPE
-            | VAR'''
 def p_List_expression(p):
     '''group : expression COMA group
             | expression'''
     p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
-    
 
 # Rule for while statement    
 def p_statement_while(p):
@@ -264,9 +285,9 @@ def p_expression_double(p):
 
 # Rule for class body with single or multiple statements
                   
-def p_statement_class(p):
-    '''statement : CLASS ID LBRACE class_body RBRACE'''
-    print(f"Definiendo clase '{p[2]}' con cuerpo {p[4]}")
+def p_class_body_empty(p):
+    'class_body : '
+    p[0] = []
 
 def p_class_body_single(p):
     'class_body : statement'
@@ -332,4 +353,3 @@ if __name__ == "__main__":
     else:
         print("Opción no válida. Saliendo...")
         exit(1)
-    
