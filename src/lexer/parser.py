@@ -85,8 +85,25 @@ def p_statement_assign(p):
 def p_statement_if(p):
     '''statement : IF LPAREN expression RPAREN LBRACE statement RBRACE
                  | IF LPAREN expression RPAREN LBRACE statement RBRACE ELSE LBRACE statement RBRACE'''
-    print("Condicional 'if' encontrado")
-    
+    if len(p) == 8:  # if without else
+        condition = p[3]
+        then_body = p[6]
+        print(f"Condicional 'if' encontrado con condición: {condition}")
+        print(f"Cuerpo del if: {then_body}")
+        # Validación semántica: verificar que la condición sea booleana
+        if not isinstance(condition, bool):
+            print(f"Advertencia: La condición '{condition}' debería evaluar a un valor booleano")
+    else:  # if with else
+        condition = p[3]
+        then_body = p[6]
+        else_body = p[10]
+        print(f"Condicional 'if-else' encontrado con condición: {condition}")
+        print(f"Cuerpo del if: {then_body}")
+        print(f"Cuerpo del else: {else_body}")
+        # Validación semántica: verificar que la condición sea booleana
+        if not isinstance(condition, bool):
+            print(f"Advertencia: La condición '{condition}' debería evaluar a un valor booleano")
+
 # Rule for numeric expressions
 def p_expression_number(p):
     '''expression : INT
@@ -189,7 +206,16 @@ def p_List_expression(p):
 # Rule for while statement    
 def p_statement_while(p):
     '''statement : WHILE LPAREN expression RPAREN LBRACE statement RBRACE'''
-    print("Bucle 'while' encontrado")
+    condition = p[3]
+    body = p[6]
+    print(f"Bucle 'while' encontrado con condición: {condition}")
+    print(f"Cuerpo del while: {body}")
+    # Validación semántica: verificar que la condición sea booleana
+    if not isinstance(condition, bool):
+        print(f"Advertencia: La condición del while '{condition}' debería evaluar a un valor booleano")
+    # Análisis semántico: verificar posible bucle infinito
+    if condition == True:
+        print("Advertencia: Condición siempre verdadera - posible bucle infinito")
 
 # CONTRIBUCION: NOELIA PASACA
 
