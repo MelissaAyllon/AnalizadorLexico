@@ -41,17 +41,80 @@ def p_type(p):
         if p[1] not in tabla_simbolos['clases']:
             raise TypeError(f"El tipo personalizado '{p[1]}' no está definido como clase.")
     p[0] = p[1]
-    
+# Contribuido por: CARLOS SALAZAR    
 # Asignacion de variables (Generalizada)
-def p_statement_assign(p):
+def p_statement_assign_simple(p):
     '''statement : type ID ASSIGN expression SEMI
                  | VAR ID ASSIGN expression SEMI
                  | FINAL ID ASSIGN expression SEMI
-                 | ID ID ASSIGN NEW ID LPAREN RPAREN SEMI
     '''
     tipo_variable = p[1]
     nombre_variable = p[2]
     valor = p[4]
+
+    valid_assignment = True
+
+    if tipo_variable == 'int':
+        try:
+            if isinstance(valor, str):
+                valor = valor.strip('"')
+            valor = int(valor)
+        except ValueError:
+            print(f"Error semántico: la variable '{nombre_variable}' debe ser int, pero se recibió '{valor}'")
+            valid_assignment = False
+
+    elif tipo_variable == 'double':
+        try:
+            if isinstance(valor, str):
+                valor = valor.strip('"')
+            valor = float(valor)
+        except ValueError:
+            print(f"Error semántico: la variable '{nombre_variable}' debe ser double, pero se recibió '{valor}'")
+            valid_assignment = False
+
+    elif tipo_variable == 'bool':
+        if isinstance(valor, str):
+            valor_lower = valor.lower().strip('"')
+            if valor_lower == 'true':
+                valor = True
+            elif valor_lower == 'false':
+                valor = False
+            else:
+                print(f"Error semántico: la variable '{nombre_variable}' debe ser bool ('true' o 'false'), pero se recibió '{valor}'")
+                valid_assignment = False
+        elif not isinstance(valor, bool):
+            print(f"Error semántico: la variable '{nombre_variable}' debe ser bool, pero se recibió un tipo {type(valor).__name__}")
+            valid_assignment = False
+
+    elif tipo_variable == 'String':
+        if not isinstance(valor, str):
+            print(f"Error semántico: la variable '{nombre_variable}' debe ser String, pero se recibió un tipo {type(valor).__name__}")
+            valid_assignment = False
+        else:
+            valor = valor.strip('"')  # Opcional: limpiar comillas
+
+    # Si el tipo es 'var', dejamos inferir el tipo sin validar
+
+    if valid_assignment:
+        if nombre_variable in tabla_simbolos['var']:
+            print(f"Advertencia: La variable '{nombre_variable}' ya existe, se actualizará su valor.")
+        tabla_simbolos['var'][nombre_variable] = {'type': tipo_variable, 'value': valor}
+        print(f"Variable '{nombre_variable}' declarada con tipo '{tipo_variable}' y valor '{valor}'")
+    else:
+        print(f"No se declaró la variable '{nombre_variable}' por error de tipo.")
+
+
+def p_statement_assign_new_instance(p):
+    '''statement : ID ID ASSIGN NEW ID LPAREN RPAREN SEMI'''
+    tipo_variable = p[1]
+    nombre_variable = p[2]
+    clase_nueva = p[5]
+    # Para instanciar un objeto nuevo (no se evalúa valor aún, sólo se guarda que es una instancia)
+    if nombre_variable in tabla_simbolos['var']:
+        print(f"Advertencia: La variable '{nombre_variable}' ya existe, se actualizará su valor.")
+    tabla_simbolos['var'][nombre_variable] = {'type': tipo_variable, 'value': f'new {clase_nueva}()'}
+    print(f"Variable '{nombre_variable}' declarada como nueva instancia de '{clase_nueva}'")
+
 
     # Verificar si la variable ya existe
     if nombre_variable in tabla_simbolos['var']:
@@ -158,7 +221,12 @@ def p_expression_group(p):
 
 def p_expression_id(p):
     'expression : ID'
-    p[0] = p[1]
+    nombre = p[1]
+    if nombre in tabla_simbolos['var']:
+        p[0] = tabla_simbolos['var'][nombre]['value']
+    else:
+        print(f"Error semántico: variable '{nombre}' no declarada")
+        p[0] = None
 
 def p_expression_attribute(p):
     'expression : expression DOT ID'
@@ -181,22 +249,35 @@ def p_error(p):
 # Rule for print statement
 def p_statement_print(p):
     '''statement : PRINT LPAREN expression RPAREN SEMI'''
+    if not isinstance(p[3], (int, float, str, bool)):
+        print(f"Advertencia: Se está intentando imprimir un tipo no básico: {type(p[3]).__name__}")
     print(f"Imprimiendo: {p[3]}")
     
 # Rule for input statement
 def p_statement_input(p):
     '''expression : STDIN DOT READLINESYNC LPAREN RPAREN'''
-    p[0] = input("Entrada del usuario: ")
+    entrada = input("Entrada del usuario: ")
+    p[0] = entrada  # Siempre devuelve string, podría extenderse con cast
+    print(f"Entrada registrada: '{entrada}' (tipo: {type(entrada).__name__})")
+
     
 
 def p_statement_List(p):
     '''statement : LIST LT type GT ID ASSIGN LBRACKET RBRACKET SEMI
                  | LIST LT type GT ID ASSIGN LBRACKET group RBRACKET SEMI
                  | LIST ID ASSIGN LBRACKET group RBRACKET SEMI'''
-    if len(p) == 10:  # Empty list
-        print(f"Declarando lista vacía '{p[5]}'")
-    elif len(p) > 10:  # List with elements
-        print(f"Declarando lista '{p[5]}' con elementos {p[8]}")
+    
+    if len(p) == 10:  # Lista vacía
+        nombre_var = p[5] if p.slice[1].type == 'LIST' else p[2]
+        tabla_simbolos['var'][nombre_var] = {'type': 'list', 'value': []}
+        print(f"Declarando lista vacía '{nombre_var}'")
+    
+    else:  # Lista con elementos
+        nombre_var = p[5] if p.slice[1].type == 'LIST' else p[2]
+        elementos = p[8] if p.slice[1].type == 'LIST' else p[6]
+        tabla_simbolos['var'][nombre_var] = {'type': 'list', 'value': elementos}
+        print(f"Declarando lista '{nombre_var}' con elementos {elementos}")
+
         
 def p_List_expression(p):
     '''group : expression COMA group
