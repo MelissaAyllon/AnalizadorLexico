@@ -3,6 +3,7 @@ from lexer.lexer import lexer_errors
 from lexer.lexer import get_tokens  # Asegúrate de que la función get_tokens esté definida en lexer.py
 from lexer.parser import parser  # Asegúrate de que tu parser esté definido en parser.py
 from lexer.parser import parser_errors
+from lexer.parser import semantic_errors  # Asegúrate de que tu parser tenga una lista de errores semánticos
 
 # Crear la ventana principal
 root = tk.Tk()
@@ -48,21 +49,29 @@ def update_errors():
     errors_text.config(state=tk.NORMAL)  # Cambiar el estado a normal para permitir cambios
     errors_text.delete(1.0, tk.END)  # Limpiar la caja de texto
     
-    # Mostrar errores del lexer
+    # Mostrar errores léxicos
     if lexer_errors:
         errors_text.insert(tk.END, "Errores léxicos:\n")
         errors_text.insert(tk.END, "\n".join(lexer_errors) + "\n")
     else:
         errors_text.insert(tk.END, "No hay errores léxicos.\n")
     
-    # Mostrar errores del parser
+    # Mostrar errores sintácticos
     if parser_errors:
         errors_text.insert(tk.END, "Errores sintácticos:\n")
         errors_text.insert(tk.END, "\n".join(parser_errors) + "\n")
     else:
         errors_text.insert(tk.END, "No hay errores sintácticos.\n")
     
+    # Mostrar errores semánticos
+    if semantic_errors:
+        errors_text.insert(tk.END, "Errores semánticos:\n")
+        errors_text.insert(tk.END, "\n".join(semantic_errors) + "\n")
+    else:
+        errors_text.insert(tk.END, "No hay errores semánticos.\n")
+    
     errors_text.config(state=tk.DISABLED)  # Volver a poner en modo solo lectura
+
 
 
 def process_code(data):

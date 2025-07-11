@@ -1,4 +1,3 @@
-from matplotlib.pylab import var
 import ply.yacc as yacc
 from lexer.lexer import tokens
 from lexer.logger import process_test_directory_parser, create_parser_log_file
@@ -12,6 +11,7 @@ tabla_simbolos = {
     "clases": {}
 }
 
+semantic_errors = []  # Lista para almacenar errores semánticos
 
 # --- Grammar Rules ---
 precedence = (
@@ -41,7 +41,7 @@ def p_type(p):
         if p[1] not in tabla_simbolos['clases']:
             raise TypeError(f"El tipo personalizado '{p[1]}' no está definido como clase.")
     p[0] = p[1]
-# Contribuido por: CARLOS SALAZAR    
+
 # Asignacion de variables (Generalizada)
 def p_statement_assign_simple(p):
     '''statement : type ID ASSIGN expression SEMI
@@ -60,8 +60,11 @@ def p_statement_assign_simple(p):
                 valor = valor.strip('"')
             valor = int(valor)
         except ValueError:
-            print(f"Error semántico: la variable '{nombre_variable}' debe ser int, pero se recibió '{valor}'")
+            error_message = f"Error semántico: la variable '{nombre_variable}' debe ser int, pero se recibió '{valor}'"
+            print(error_message)
+            semantic_errors.append(error_message)  # Guardar error semántico
             valid_assignment = False
+
 
     elif tipo_variable == 'double':
         try:
@@ -69,9 +72,11 @@ def p_statement_assign_simple(p):
                 valor = valor.strip('"')
             valor = float(valor)
         except ValueError:
-            print(f"Error semántico: la variable '{nombre_variable}' debe ser double, pero se recibió '{valor}'")
+            error_message = f"Error semántico: la variable '{nombre_variable}' debe ser double, pero se recibió '{valor}'"
+            print(error_message)
+            semantic_errors.append(error_message)  # Guardar error semántico
             valid_assignment = False
-
+        
     elif tipo_variable == 'bool':
         if isinstance(valor, str):
             valor_lower = valor.lower().strip('"')
@@ -80,15 +85,21 @@ def p_statement_assign_simple(p):
             elif valor_lower == 'false':
                 valor = False
             else:
-                print(f"Error semántico: la variable '{nombre_variable}' debe ser bool ('true' o 'false'), pero se recibió '{valor}'")
+                error_message = f"Error semántico: la variable '{nombre_variable}' debe ser bool ('true' o 'false'), pero se recibió '{valor}'"
+                print(error_message)
+                semantic_errors.append(error_message)  # Guardar error semántico
                 valid_assignment = False
         elif not isinstance(valor, bool):
-            print(f"Error semántico: la variable '{nombre_variable}' debe ser bool, pero se recibió un tipo {type(valor).__name__}")
+            error_message = f"Error semántico: la variable '{nombre_variable}' debe ser bool, pero se recibió un tipo {type(valor).__name__}"
+            print(error_message)
+            semantic_errors.append(error_message)  # Guardar error semántico
             valid_assignment = False
 
     elif tipo_variable == 'String':
         if not isinstance(valor, str):
-            print(f"Error semántico: la variable '{nombre_variable}' debe ser String, pero se recibió un tipo {type(valor).__name__}")
+            error_message = f"Error semántico: la variable '{nombre_variable}' debe ser String, pero se recibió un tipo {type(valor).__name__}"
+            print(error_message)
+            semantic_errors.append(error_message)  # Guardar error semántico
             valid_assignment = False
         else:
             valor = valor.strip('"')  # Opcional: limpiar comillas
@@ -158,7 +169,9 @@ def p_statement_if(p):
         print(f"Cuerpo del if: {then_body}")
         # Validación semántica: verificar que la condición sea booleana
         if not isinstance(condition, bool):
-            print(f"Advertencia: La condición '{condition}' debería evaluar a un valor booleano")
+            error_message = f"Error semántico: La condición '{condition}' debe ser un valor booleano en el 'if'."
+            print(error_message)
+            semantic_errors.append(error_message)  # Agregar a la lista de errores semánticos
     else:  # if with else
         condition = p[3]
         then_body = p[6]
@@ -168,7 +181,9 @@ def p_statement_if(p):
         print(f"Cuerpo del else: {else_body}")
         # Validación semántica: verificar que la condición sea booleana
         if not isinstance(condition, bool):
-            print(f"Advertencia: La condición '{condition}' debería evaluar a un valor booleano")
+            error_message = f"Error semántico: La condición '{condition}' debe ser un valor booleano en el 'if-else'."
+            print(error_message)
+            semantic_errors.append(error_message)  # Agregar a la lista de errores semánticos
 
 # Rule for numeric expressions
 def p_expression_number(p):
