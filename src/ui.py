@@ -27,7 +27,7 @@ tokens_title.pack(pady=10)
 
 # Caja de texto para Tokens
 tokens_text = tk.Text(frame_tokens, height=10, width=30, bg="#2d2d2d", fg="white", font=("Courier", 12))
-tokens_text.insert(tk.END, "int, suma, +\nTIPO: KEYWORD, ID, PLUS\nPosición: (3, 13), (3, 13), (3, 13)")
+tokens_text.insert(tk.END, "Tokens aparecerán aquí...")
 tokens_text.config(state=tk.DISABLED)  # Hacer el campo solo lectura
 tokens_text.pack()
 
@@ -60,26 +60,30 @@ def update_errors():
     errors_text.config(state=tk.NORMAL)  # Cambiar el estado a normal para permitir cambios
     errors_text.delete(1.0, tk.END)  # Limpiar la caja de texto
     
+    # Configurar tags
+    errors_text.tag_configure("error", foreground="red")
+    errors_text.tag_configure("info", foreground="white")
+    
     # Mostrar errores léxicos
     if lexer_errors:
-        errors_text.insert(tk.END, "Errores léxicos:\n")
-        errors_text.insert(tk.END, "\n".join(lexer_errors) + "\n")
+        errors_text.insert(tk.END, "Errores léxicos:\n", "error")
+        errors_text.insert(tk.END, "\n".join(lexer_errors) + "\n", "error")
     else:
-        errors_text.insert(tk.END, "No hay errores léxicos.\n")
+        errors_text.insert(tk.END, "No hay errores léxicos.\n", "info")
     
     # Mostrar errores sintácticos
     if parser_errors:
-        errors_text.insert(tk.END, "Errores sintácticos:\n")
-        errors_text.insert(tk.END, "\n".join(parser_errors) + "\n")
+        errors_text.insert(tk.END, "Errores sintácticos:\n", "error")
+        errors_text.insert(tk.END, "\n".join(parser_errors) + "\n", "error")
     else:
-        errors_text.insert(tk.END, "No hay errores sintácticos.\n")
+        errors_text.insert(tk.END, "No hay errores sintácticos.\n", "info")
     
     # Mostrar errores semánticos
     if semantic_errors:
-        errors_text.insert(tk.END, "Errores semánticos:\n")
-        errors_text.insert(tk.END, "\n".join(semantic_errors) + "\n")
+        errors_text.insert(tk.END, "Errores semánticos:\n", "error")
+        errors_text.insert(tk.END, "\n".join(semantic_errors) + "\n", "error")
     else:
-        errors_text.insert(tk.END, "No hay errores semánticos.\n")
+        errors_text.insert(tk.END, "No hay errores semánticos.\n", "info")
     
     errors_text.config(state=tk.DISABLED)  # Volver a poner en modo solo lectura
 
@@ -88,6 +92,7 @@ def update_errors():
 def process_code(data):
     lexer_errors.clear()  # Limpiar errores anteriores
     parser_errors.clear()  # Limpiar errores anteriores
+    semantic_errors.clear()  # Limpiar errores semánticos anteriores
 
     # Paso 1: Tokenización (Lexer)
     tokens_list = get_tokens(data)  # Llama a tu lexer para obtener los tokens
@@ -118,14 +123,59 @@ editor_title.pack(pady=5)
 code_frame = tk.Frame(frame_code, bg="#333333")
 code_frame.pack()
 
+# Canvas para los números de línea
+line_numbers = tk.Canvas(code_frame, width=30, bg="#2d2d2d", highlightthickness=0)
+line_numbers.pack(side=tk.LEFT, fill=tk.Y)
+
 # Caja de texto para código
-code_text = tk.Text(code_frame, height=20, width=60, bg="#2d2d2d", fg="white", font=("Courier", 12), wrap=tk.WORD)
-code_text.insert(tk.END, "Ingresa tu código Dart aquí...")
+code_text = tk.Text(code_frame, height=20, width=60, bg="#2d2d2d", fg="grey", font=("Courier", 12), wrap=tk.WORD, insertbackground="white", yscrollcommand=lambda *args: [scrollbar.set(*args), update_line_numbers()])
+placeholder = "Ingresa tu código Dart aquí..."
+code_text.insert(tk.END, placeholder)
 code_text.pack(side=tk.LEFT)
+
+# Scrollbar vertical
+scrollbar = tk.Scrollbar(code_frame, orient="vertical", command=lambda *args: [code_text.yview(*args), update_line_numbers()])
+scrollbar.pack(side=tk.RIGHT, fill="y")
+
+# Función para actualizar números de línea
+def update_line_numbers(event=None):
+    line_numbers.delete("all")
+    i = code_text.index("@0,0")
+    while True:
+        dline = code_text.dlineinfo(i)
+        if dline is None:
+            break
+        y = dline[1]
+        line_number = str(i).split(".")[0]
+        line_numbers.create_text(2, y, anchor="nw", text=line_number, fill="gray", font=("Courier", 12))
+        i = code_text.index(f"{i}+1line")
+
+# Enlaces para actualizar los números de línea en distintos eventos
+code_text.bind("<KeyRelease>", update_line_numbers)
+code_text.bind("<MouseWheel>", update_line_numbers)
+code_text.bind("<Button-1>", update_line_numbers)
+code_text.bind("<Configure>", update_line_numbers)
+code_text.bind("<FocusIn>", update_line_numbers)
+
+def clear_placeholder(event):
+    current = code_text.get("1.0", tk.END).strip()
+    if current == placeholder:
+        code_text.delete("1.0", tk.END)
+        code_text.config(fg="white")
+
+def restore_placeholder(event):
+    current = code_text.get("1.0", tk.END).strip()
+    if current == "":
+        code_text.insert("1.0", placeholder)
+        code_text.config(fg="grey")
+
+code_text.bind("<FocusIn>", clear_placeholder)
+code_text.bind("<FocusOut>", restore_placeholder)
+
 
 # Botón de ejecutar
 def on_execute():
-    code = code_text.get(1.0, tk.END)  # Obtener el código ingresado
+    code = code_text.get(1.0, tk.END).strip()  # Obtener el código ingresado
     process_code(code)  # Procesar el código ingresado
 
 # Botones

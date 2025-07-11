@@ -254,11 +254,17 @@ parser_errors = []  # Lista para almacenar los errores sintácticos
 
 def p_error(p):
     if p:
-        error_message = f"Error de sintaxis en '{p.value}' en la posición {p.lineno}"
+        print("DEBUG token p:", p)
+        print("p.value:", p.value)
+        print("p.type:", p.type)
+        print("p.lineno:", p.lineno)
+        print("p.lexpos:", p.lexpos)
+        error_message = f"Error de sintaxis en '{p.value}' en la línea {p.lineno}. Se espera un ';' o un '}}'?"
         print(f"Capturando error sintáctico: {error_message}")  # Agrega este print para verificar
         parser_errors.append(error_message)
     else:
-        error_message = "Error de sintaxis en la entrada (fin inesperado)"
+        error_message = "Error de sintaxis: fin inesperado de entrada. ¿Falta un ';' al final?"
+        print(f"Capturando error sintáctico: {error_message}")
         parser_errors.append(error_message)
 
 
@@ -448,8 +454,20 @@ def p_param_list_single(p):
 def p_param(p):
     'param : type ID'
     p[0] = (p[1], p[2])
+    
+def p_program(p):
+    '''program : statements'''
+    p[0] = p[1]
 
-parser = yacc.yacc()
+def p_statements_multiple(p):
+    '''statements : statements statement'''
+    p[0] = p[1] + [p[2]]
+
+def p_statements_single(p):
+    '''statements : statement'''
+    p[0] = [p[1]]
+
+parser = yacc.yacc(start='program')
 
 def main():
     """Función principal que procesa archivos de prueba y crea logs"""

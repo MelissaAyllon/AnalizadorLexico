@@ -217,10 +217,12 @@ def t_COLON(t):
 
 # Crear el objeto lexer global: para que reconozca el parser
 lexer = lex.lex()
+lexer.lineno = 1 
 #--- Function to get tokens from input data
 def get_tokens(data):
     # Build the lexer
-    lexer = lex.lex()
+    global lexer
+    lexer.lineno = 1  # Reiniciar contador para cada análisis
     
     # Give the lexer some input
     lexer.input(data)
