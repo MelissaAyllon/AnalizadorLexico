@@ -1,7 +1,7 @@
 from matplotlib.pylab import var
 import ply.yacc as yacc
-from lexer import tokens
-from logger import process_test_directory_parser, create_parser_log_file
+from lexer.lexer import tokens
+from lexer.logger import process_test_directory_parser, create_parser_log_file
 import os
 
 tabla_simbolos = {
@@ -103,6 +103,9 @@ def p_statement_assign_simple(p):
     else:
         print(f"No se declaró la variable '{nombre_variable}' por error de tipo.")
 
+def p_statement_newline(p):
+    '''statement : NEWLINE'''
+    pass  # Simplemente ignoramos los saltos de línea, no causan errores
 
 def p_statement_assign_new_instance(p):
     '''statement : ID ID ASSIGN NEW ID LPAREN RPAREN SEMI'''
@@ -232,11 +235,18 @@ def p_expression_attribute(p):
     'expression : expression DOT ID'
     print(f"Accediendo al atributo '{p[3]}' de {p[1]}")
 
+parser_errors = []  # Lista para almacenar los errores sintácticos
+
 def p_error(p):
     if p:
-        print(f"Error de sintaxis en '{p.value}'")
+        error_message = f"Error de sintaxis en '{p.value}' en la posición {p.lineno}"
+        print(f"Capturando error sintáctico: {error_message}")  # Agrega este print para verificar
+        parser_errors.append(error_message)
     else:
-        print("Error de sintaxis en la entrada")
+        error_message = "Error de sintaxis en la entrada (fin inesperado)"
+        parser_errors.append(error_message)
+
+
 
 ''' 
     Main program to test the parser

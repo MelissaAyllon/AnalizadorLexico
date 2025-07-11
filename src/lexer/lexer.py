@@ -1,6 +1,7 @@
 import ply.lex as lex
-from reserved import reserved
-from logger import create_log_file
+
+from lexer.reserved import reserved
+from lexer.logger import create_log_file
 
 tokens = ['NEWLINE', 'ID', # Identifier
           'NULLABLE', 'LPAREN', 'RPAREN', 'RBRACKET', 'LBRACKET', 'LBRACE', 'RBRACE', 'LT', 'GT', 'ASSIGN', 'SEMI', 'COMA', 'DOT', 'COLON',  # Literals
@@ -21,9 +22,9 @@ t_ignore = ' \t'
 
 def t_NEWLINE(t):
     r'\n+'
-    t.type = 'NEWLINE'
-    t.lexer.lineno += len(t.value)
-    return t
+    t.lexer.lineno += len(t.value)  # Asegúrate de actualizar el número de línea
+    return None  # No devuelve un token, solo lo omite
+
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -55,11 +56,17 @@ def t_RBRACKET(t):
     t.type = 'RBRACKET'
     return t
 
+lexer_errors = []  # Lista para almacenar errores léxicos
+# Errores léxicos
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+    error_message = "'%s' (illegal character)" % t.value[0]
+    lexer_errors.append(error_message)  # Guardamos el error en lexer_errors
+    print(error_message)  # Opción de depuración
     t.type = 'ILLEGAL'
     t.lexer.skip(1)
     return "'%s'" % t.value[0] + " (illegal character)"
+
+
 
 # CONTRIBUCION: NOELIA PASACA
 
