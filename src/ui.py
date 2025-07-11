@@ -45,6 +45,17 @@ errors_text.insert(tk.END, "Errores aparecerán aquí...")
 errors_text.config(state=tk.DISABLED)  # Hacer el campo solo lectura
 errors_text.pack()
 
+def update_tokens(tokens_list):
+    tokens_text.config(state=tk.NORMAL)  # Hacer el campo editable temporalmente
+    tokens_text.delete(1.0, tk.END)  # Limpiar la caja de texto
+
+    # Insertar los tokens en el área de texto
+    tokens_text.insert(tk.END, "Tokens encontrados:\n")
+    tokens_text.insert(tk.END, "\n".join(tokens_list) + "\n")
+    
+    tokens_text.config(state=tk.DISABLED)  # Volver a poner en modo solo lectura
+
+
 def update_errors():
     errors_text.config(state=tk.NORMAL)  # Cambiar el estado a normal para permitir cambios
     errors_text.delete(1.0, tk.END)  # Limpiar la caja de texto
@@ -82,13 +93,16 @@ def process_code(data):
     tokens_list = get_tokens(data)  # Llama a tu lexer para obtener los tokens
     print(f"Tokens encontrados: {tokens_list}")  # Esto es para verificar los tokens
 
-    # Paso 2: Parseo (Parser)
+    # Paso 2: Mostrar los tokens en la UI
+    update_tokens(tokens_list)  # Llamar a esta función para actualizar la UI con los tokens
+
+    # Paso 3: Parseo (Parser)
     try:
         result = parser.parse(data)  # Llama al parser para procesar los tokens
     except Exception as e:
         print(f"Error en el parser: {e}")
     
-    # Paso 3: Actualizar errores en la UI
+    # Paso 4: Actualizar errores en la UI
     update_errors()  # Llama a esta función para actualizar la UI con los errores
 
 
