@@ -21,6 +21,80 @@ precedence = (
     ('right', 'NOT'),          # 'NOT' is right-associative
 )
 
+# ===== REGLAS SEMÁNTICAS POR INTEGRANTE =====
+# CARLOS SALAZAR - Reglas semánticas para estructuras de datos
+def validate_list_declaration(var_name, elements):
+    """Regla semántica 1 de Carlos: Validar que los elementos de una lista sean del mismo tipo"""
+    if elements and len(elements) > 1:
+        first_type = type(elements[0])
+        for i, element in enumerate(elements[1:], 1):
+            if type(element) != first_type:
+                error_msg = f"Error semántico: Lista '{var_name}' debe contener elementos del mismo tipo. Elemento {i} es {type(element).__name__}, se esperaba {first_type.__name__}"
+                semantic_errors.append(error_msg)
+                print(error_msg)
+                return False
+    return True
+
+def validate_map_key_types(var_name, entries):
+    """Regla semántica 2 de Carlos: Validar que las claves del map sean del mismo tipo"""
+    if entries and len(entries) > 1:
+        first_key_type = type(entries[0][0])
+        for i, (key, value) in enumerate(entries[1:], 1):
+            if type(key) != first_key_type:
+                error_msg = f"Error semántico: Map '{var_name}' debe tener claves del mismo tipo. Clave {i} es {type(key).__name__}, se esperaba {first_key_type.__name__}"
+                semantic_errors.append(error_msg)
+                print(error_msg)
+                return False
+    return True
+
+# MELISSA AYLLON - Reglas semánticas para estructuras de control
+def validate_loop_condition(condition, loop_type):
+    """Regla semántica 1 de Melissa: Validar que las condiciones de bucle sean booleanas"""
+    if not isinstance(condition, bool):
+        error_msg = f"Error semántico: La condición del bucle {loop_type} debe ser booleana, se recibió {type(condition).__name__}"
+        semantic_errors.append(error_msg)
+        print(error_msg)
+        return False
+    return True
+
+def validate_if_condition(condition):
+    """Regla semántica 2 de Melissa: Validar que las condiciones de if sean booleanas"""
+    if not isinstance(condition, bool):
+        error_msg = f"Error semántico: La condición del if debe ser booleana, se recibió {type(condition).__name__}"
+        semantic_errors.append(error_msg)
+        print(error_msg)
+        return False
+    return True
+
+# NOELIA PASACA - Reglas semánticas para funciones y validaciones
+def validate_function_return_type(func_name, expected_type, actual_value):
+    """Regla semántica 1 de Noelia: Validar que las funciones retornen el tipo esperado"""
+    if expected_type == 'double' and not isinstance(actual_value, (int, float)):
+        error_msg = f"Error semántico: Función '{func_name}' debe retornar double, se recibió {type(actual_value).__name__}"
+        semantic_errors.append(error_msg)
+        print(error_msg)
+        return False
+    elif expected_type == 'bool' and not isinstance(actual_value, bool):
+        error_msg = f"Error semántico: Función '{func_name}' debe retornar bool, se recibió {type(actual_value).__name__}"
+        semantic_errors.append(error_msg)
+        print(error_msg)
+        return False
+    return True
+
+def validate_parameter_types(func_name, param_name, expected_type, actual_value):
+    """Regla semántica 2 de Noelia: Validar tipos de parámetros en funciones"""
+    if expected_type == 'int' and not isinstance(actual_value, int):
+        error_msg = f"Error semántico: Parámetro '{param_name}' en función '{func_name}' debe ser int, se recibió {type(actual_value).__name__}"
+        semantic_errors.append(error_msg)
+        print(error_msg)
+        return False
+    elif expected_type == 'double' and not isinstance(actual_value, (int, float)):
+        error_msg = f"Error semántico: Parámetro '{param_name}' en función '{func_name}' debe ser double, se recibió {type(actual_value).__name__}"
+        semantic_errors.append(error_msg)
+        print(error_msg)
+        return False
+    return True
+
 # Contribuido por: MELISSA AYLLON
 def p_statement_class(p):
     '''statement : CLASS ID LBRACE class_body RBRACE'''
@@ -167,11 +241,8 @@ def p_statement_if(p):
         then_body = p[6]
         print(f"Condicional 'if' encontrado con condición: {condition}")
         print(f"Cuerpo del if: {then_body}")
-        # Validación semántica: verificar que la condición sea booleana
-        if not isinstance(condition, bool):
-            error_message = f"Error semántico: La condición '{condition}' debe ser un valor booleano en el 'if'."
-            print(error_message)
-            semantic_errors.append(error_message)  # Agregar a la lista de errores semánticos
+        # Aplicar regla semántica de Melissa: validar condición booleana
+        validate_if_condition(condition)
     else:  # if with else
         condition = p[3]
         then_body = p[6]
@@ -179,11 +250,8 @@ def p_statement_if(p):
         print(f"Condicional 'if-else' encontrado con condición: {condition}")
         print(f"Cuerpo del if: {then_body}")
         print(f"Cuerpo del else: {else_body}")
-        # Validación semántica: verificar que la condición sea booleana
-        if not isinstance(condition, bool):
-            error_message = f"Error semántico: La condición '{condition}' debe ser un valor booleano en el 'if-else'."
-            print(error_message)
-            semantic_errors.append(error_message)  # Agregar a la lista de errores semánticos
+        # Aplicar regla semántica de Melissa: validar condición booleana
+        validate_if_condition(condition)
 
 # Rule for numeric expressions
 def p_expression_number(p):
@@ -259,11 +327,25 @@ def p_error(p):
         print("p.type:", p.type)
         print("p.lineno:", p.lineno)
         print("p.lexpos:", p.lexpos)
-        error_message = f"Error de sintaxis en '{p.value}' en la línea {p.lineno}. Se espera un ';' o un '}}'?"
-        print(f"Capturando error sintáctico: {error_message}")  # Agrega este print para verificar
+        
+        # Análisis más detallado del error
+        if p.type == 'SEMI':
+            error_message = f"Error de sintaxis en línea {p.lineno}: Falta punto y coma (;) después de '{p.value}'"
+        elif p.type == 'RBRACE':
+            error_message = f"Error de sintaxis en línea {p.lineno}: Falta llave de cierre (}}) después de '{p.value}'"
+        elif p.type == 'RPAREN':
+            error_message = f"Error de sintaxis en línea {p.lineno}: Falta paréntesis de cierre ()) después de '{p.value}'"
+        elif p.type == 'RBRACKET':
+            error_message = f"Error de sintaxis en línea {p.lineno}: Falta corchete de cierre (]) después de '{p.value}'"
+        elif p.type == 'ID':
+            error_message = f"Error de sintaxis en línea {p.lineno}: Token inesperado '{p.value}'. Se esperaba una declaración válida"
+        else:
+            error_message = f"Error de sintaxis en línea {p.lineno}: Token inesperado '{p.value}' de tipo '{p.type}'"
+        
+        print(f"Capturando error sintáctico: {error_message}")
         parser_errors.append(error_message)
     else:
-        error_message = "Error de sintaxis: fin inesperado de entrada. ¿Falta un ';' al final?"
+        error_message = "Error de sintaxis: Fin inesperado de entrada. Verifique que todas las declaraciones terminen con punto y coma (;) y que todas las llaves estén cerradas"
         print(f"Capturando error sintáctico: {error_message}")
         parser_errors.append(error_message)
 
@@ -306,8 +388,13 @@ def p_statement_List(p):
     else:  # Lista con elementos
         nombre_var = p[5] if p.slice[1].type == 'LIST' else p[2]
         elementos = p[8] if p.slice[1].type == 'LIST' else p[6]
-        tabla_simbolos['var'][nombre_var] = {'type': 'list', 'value': elementos}
-        print(f"Declarando lista '{nombre_var}' con elementos {elementos}")
+        
+        # Aplicar regla semántica de Carlos: validar tipos de elementos
+        if validate_list_declaration(nombre_var, elementos):
+            tabla_simbolos['var'][nombre_var] = {'type': 'list', 'value': elementos}
+            print(f"Declarando lista '{nombre_var}' con elementos {elementos}")
+        else:
+            print(f"No se declaró la lista '{nombre_var}' por error semántico")
 
         
 def p_List_expression(p):
@@ -322,9 +409,8 @@ def p_statement_while(p):
     body = p[6]
     print(f"Bucle 'while' encontrado con condición: {condition}")
     print(f"Cuerpo del while: {body}")
-    # Validación semántica: verificar que la condición sea booleana
-    if not isinstance(condition, bool):
-        print(f"Advertencia: La condición del while '{condition}' debería evaluar a un valor booleano")
+    # Aplicar regla semántica de Melissa: validar condición booleana
+    validate_loop_condition(condition, "while")
     # Análisis semántico: verificar posible bucle infinito
     if condition == True:
         print("Advertencia: Condición siempre verdadera - posible bucle infinito")
@@ -368,9 +454,19 @@ def p_statement_map(p):
     '''statement : MAP LT type COMA type GT ID ASSIGN LBRACE map_entries RBRACE SEMI
                  | MAP LT type COMA type GT ID ASSIGN LBRACE RBRACE SEMI'''
     if len(p) == 12:  # Empty map
-        print(f"Declarando mapa vacío '{p[7]}' de tipo {p[2]}<{p[3]}, {p[5]}>")
+        nombre_var = p[7]
+        tabla_simbolos['var'][nombre_var] = {'type': 'map', 'value': {}}
+        print(f"Declarando mapa vacío '{nombre_var}' de tipo {p[2]}<{p[3]}, {p[5]}>")
     else:  # Map with entries
-        print(f"Declarando mapa '{p[7]}' de tipo {p[2]}<{p[3]}, {p[5]}> con entradas {p[10]}")
+        nombre_var = p[7]
+        entradas = p[10]
+        
+        # Aplicar regla semántica de Carlos: validar tipos de claves
+        if validate_map_key_types(nombre_var, entradas):
+            tabla_simbolos['var'][nombre_var] = {'type': 'map', 'value': dict(entradas)}
+            print(f"Declarando mapa '{nombre_var}' de tipo {p[2]}<{p[3]}, {p[5]}> con entradas {entradas}")
+        else:
+            print(f"No se declaró el mapa '{nombre_var}' por error semántico")
 
 # Rule for map entries
 def p_map_entries(p):
