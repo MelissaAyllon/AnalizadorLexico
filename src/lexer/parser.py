@@ -1,5 +1,6 @@
 import ply.yacc as yacc
 from lexer.lexer import tokens
+from lexer.lexer import lexer
 from lexer.logger import process_test_directory_parser, create_parser_log_file
 import os
 
@@ -11,7 +12,7 @@ tabla_simbolos = {
     "clases": {}
 }
 
-semantic_errors = []  # Lista para almacenar errores semánticos
+semantic_errors = []  # List for storing semantic errors
 
 # --- Grammar Rules ---
 precedence = (
@@ -21,8 +22,8 @@ precedence = (
     ('right', 'NOT'),          # 'NOT' is right-associative
 )
 
-# ===== REGLAS SEMÁNTICAS POR INTEGRANTE =====
-# CARLOS SALAZAR - Reglas semánticas para estructuras de datos
+# ===== SEMANTIC RULES PER MEMBER =====
+# CARLOS SALAZAR - Semantic rules for data structures
 def validate_list_declaration(var_name, elements):
     """Regla semántica 1 de Carlos: Validar que los elementos de una lista sean del mismo tipo"""
     if elements and len(elements) > 1:
@@ -47,7 +48,7 @@ def validate_map_key_types(var_name, entries):
                 return False
     return True
 
-# MELISSA AYLLON - Reglas semánticas para estructuras de control
+# MELISSA AYLLON - Semantic rules for control structures
 def validate_loop_condition(condition, loop_type):
     """Regla semántica 1 de Melissa: Validar que las condiciones de bucle sean booleanas"""
     if not isinstance(condition, bool):
@@ -66,7 +67,7 @@ def validate_if_condition(condition):
         return False
     return True
 
-# NOELIA PASACA - Reglas semánticas para funciones y validaciones
+# NOELIA PASACA - Semantic rules for functions and validations
 def validate_function_return_type(func_name, expected_type, actual_value):
     """Regla semántica 1 de Noelia: Validar que las funciones retornen el tipo esperado"""
     if expected_type == 'double' and not isinstance(actual_value, (int, float)):
@@ -95,7 +96,7 @@ def validate_parameter_types(func_name, param_name, expected_type, actual_value)
         return False
     return True
 
-# Contribuido por: MELISSA AYLLON
+# Contributed by: MELISSA AYLLON
 def p_statement_class(p):
     '''statement : CLASS ID LBRACE class_body RBRACE'''
     nombre_clase = p[2]
@@ -116,7 +117,7 @@ def p_type(p):
             raise TypeError(f"El tipo personalizado '{p[1]}' no está definido como clase.")
     p[0] = p[1]
 
-# Asignacion de variables (Generalizada)
+# Variable Assignment (Generalized)
 def p_statement_assign_simple(p):
     '''statement : type ID ASSIGN expression SEMI
                  | VAR ID ASSIGN expression SEMI
@@ -136,7 +137,7 @@ def p_statement_assign_simple(p):
         except ValueError:
             error_message = f"Error semántico: la variable '{nombre_variable}' debe ser int, pero se recibió '{valor}'"
             print(error_message)
-            semantic_errors.append(error_message)  # Guardar error semántico
+            semantic_errors.append(error_message)  # Save semantic error
             valid_assignment = False
 
 
@@ -148,7 +149,7 @@ def p_statement_assign_simple(p):
         except ValueError:
             error_message = f"Error semántico: la variable '{nombre_variable}' debe ser double, pero se recibió '{valor}'"
             print(error_message)
-            semantic_errors.append(error_message)  # Guardar error semántico
+            semantic_errors.append(error_message)  # Save semantic error
             valid_assignment = False
         
     elif tipo_variable == 'bool':
@@ -161,24 +162,24 @@ def p_statement_assign_simple(p):
             else:
                 error_message = f"Error semántico: la variable '{nombre_variable}' debe ser bool ('true' o 'false'), pero se recibió '{valor}'"
                 print(error_message)
-                semantic_errors.append(error_message)  # Guardar error semántico
+                semantic_errors.append(error_message)  # Save semantic error
                 valid_assignment = False
         elif not isinstance(valor, bool):
             error_message = f"Error semántico: la variable '{nombre_variable}' debe ser bool, pero se recibió un tipo {type(valor).__name__}"
             print(error_message)
-            semantic_errors.append(error_message)  # Guardar error semántico
+            semantic_errors.append(error_message)  # Save semantic error
             valid_assignment = False
 
     elif tipo_variable == 'String':
         if not isinstance(valor, str):
             error_message = f"Error semántico: la variable '{nombre_variable}' debe ser String, pero se recibió un tipo {type(valor).__name__}"
             print(error_message)
-            semantic_errors.append(error_message)  # Guardar error semántico
+            semantic_errors.append(error_message)  # Save semantic error
             valid_assignment = False
         else:
-            valor = valor.strip('"')  # Opcional: limpiar comillas
+            valor = valor.strip('"')  # Optional: clear quotes
 
-    # Si el tipo es 'var', dejamos inferir el tipo sin validar
+    # If the type is 'var', we let the type be inferred without validation.
 
     if valid_assignment:
         if nombre_variable in tabla_simbolos['var']:
@@ -188,27 +189,25 @@ def p_statement_assign_simple(p):
     else:
         print(f"No se declaró la variable '{nombre_variable}' por error de tipo.")
 
-def p_statement_newline(p):
-    '''statement : NEWLINE'''
-    pass  # Simplemente ignoramos los saltos de línea, no causan errores
+
 
 def p_statement_assign_new_instance(p):
     '''statement : ID ID ASSIGN NEW ID LPAREN RPAREN SEMI'''
     tipo_variable = p[1]
     nombre_variable = p[2]
     clase_nueva = p[5]
-    # Para instanciar un objeto nuevo (no se evalúa valor aún, sólo se guarda que es una instancia)
+    # To instantiate a new object (no value is evaluated yet, just that it is an instance)
     if nombre_variable in tabla_simbolos['var']:
         print(f"Advertencia: La variable '{nombre_variable}' ya existe, se actualizará su valor.")
     tabla_simbolos['var'][nombre_variable] = {'type': tipo_variable, 'value': f'new {clase_nueva}()'}
     print(f"Variable '{nombre_variable}' declarada como nueva instancia de '{clase_nueva}'")
 
 
-    # Verificar si la variable ya existe
+    # Check if the variable already exists
     if nombre_variable in tabla_simbolos['var']:
         raise NameError(f"La variable '{nombre_variable}' ya ha sido declarada.")
 
-    # Verificación de tipo para tipos reservados
+    # Type checking for reserved types
     if tipo_variable == 'var':
         tipo_inferido = type(valor).__name__
         tabla_simbolos['var'][nombre_variable] = {'type': tipo_inferido, 'value': valor}
@@ -222,9 +221,9 @@ def p_statement_assign_new_instance(p):
         raise TypeError(f"Se esperaba double para '{nombre_variable}', pero se recibió {type(valor).__name__}")
     elif tipo_variable == 'bool' and not isinstance(valor, bool):
         raise TypeError(f"Se esperaba bool para '{nombre_variable}', pero se recibió {type(valor).__name__}")
-    # Verificación para tipos personalizados (clases)
+    # Checking for custom types (classes)
     elif tipo_variable in tabla_simbolos['clases']:
-        # Aquí podrías agregar lógica para verificar que valor sea una instancia válida
+        # Logic to verify that the value is a valid instance
         tabla_simbolos['var'][nombre_variable] = {'type': tipo_variable, 'value': valor}
     else:
         tabla_simbolos['var'][nombre_variable] = {'type': tipo_variable, 'value': valor}
@@ -232,7 +231,7 @@ def p_statement_assign_new_instance(p):
     print(f"Variable '{nombre_variable}' declarada con tipo '{tipo_variable}' y valor '{valor}'")
     print(f"Tabla de símbolos actualizada: {tabla_simbolos['var']}")
 
-# Regla para el condicional if
+# Rule for the if conditional
 def p_statement_if(p):
     '''statement : IF LPAREN expression RPAREN LBRACE statement RBRACE
                  | IF LPAREN expression RPAREN LBRACE statement RBRACE ELSE LBRACE statement RBRACE'''
@@ -241,7 +240,7 @@ def p_statement_if(p):
         then_body = p[6]
         print(f"Condicional 'if' encontrado con condición: {condition}")
         print(f"Cuerpo del if: {then_body}")
-        # Aplicar regla semántica de Melissa: validar condición booleana
+        # Apply Melissa's semantic rule: validate boolean condition
         validate_if_condition(condition)
     else:  # if with else
         condition = p[3]
@@ -250,7 +249,7 @@ def p_statement_if(p):
         print(f"Condicional 'if-else' encontrado con condición: {condition}")
         print(f"Cuerpo del if: {then_body}")
         print(f"Cuerpo del else: {else_body}")
-        # Aplicar regla semántica de Melissa: validar condición booleana
+        # Apply Melissa's semantic rule: validate boolean condition
         validate_if_condition(condition)
 
 # Rule for numeric expressions
@@ -318,38 +317,58 @@ def p_expression_attribute(p):
     'expression : expression DOT ID'
     print(f"Accediendo al atributo '{p[3]}' de {p[1]}")
 
-parser_errors = []  # Lista para almacenar los errores sintácticos
-
+parser_errors = []  # List to store syntactical errors
+current_line = 1
 def p_error(p):
+    global current_line
+    
     if p:
+        # Use the current line of the problematic token
+        error_line = p.lineno if p.lineno else current_line
+        
         print("DEBUG token p:", p)
-        print("p.value:", p.value)
+        print("p.value:", repr(p.value))  # use repr to view special characters
         print("p.type:", p.type)
         print("p.lineno:", p.lineno)
         print("p.lexpos:", p.lexpos)
+        print("current_value:", current_line)
         
-        # Análisis más detallado del error
-        if p.type == 'SEMI':
-            error_message = f"Error de sintaxis en línea {p.lineno}: Falta punto y coma (;) después de '{p.value}'"
+        # More detailed analysis of the error
+        if p.type == 'NEWLINE':
+            # If the error is in NEWLINE
+            error_message = f"Error de sintaxis en línea {current_line}: Declaración incompleta o mal formada"
+            current_line = 1
+        elif p.type == 'SEMI':
+            error_message = f"Error de sintaxis en línea {current_line}: Falta punto y coma (;) después de '{p.value}'"
+            current_line = 1
         elif p.type == 'RBRACE':
-            error_message = f"Error de sintaxis en línea {p.lineno}: Falta llave de cierre (}}) después de '{p.value}'"
+            error_message = f"Error de sintaxis en línea {current_line}: Falta llave de cierre (}}) después de '{p.value}'"
         elif p.type == 'RPAREN':
-            error_message = f"Error de sintaxis en línea {p.lineno}: Falta paréntesis de cierre ()) después de '{p.value}'"
+            error_message = f"Error de sintaxis en línea {current_line}: Falta paréntesis de cierre ()) después de '{p.value}'"
         elif p.type == 'RBRACKET':
-            error_message = f"Error de sintaxis en línea {p.lineno}: Falta corchete de cierre (]) después de '{p.value}'"
+            error_message = f"Error de sintaxis en línea {current_line}: Falta corchete de cierre (]) después de '{p.value}'"
         elif p.type == 'ID':
-            error_message = f"Error de sintaxis en línea {p.lineno}: Token inesperado '{p.value}'. Se esperaba una declaración válida"
+            error_message = f"Error de sintaxis en línea {current_line}: Token inesperado '{p.value}'. Posible declaración de tipo faltante"
         else:
-            error_message = f"Error de sintaxis en línea {p.lineno}: Token inesperado '{p.value}' de tipo '{p.type}'"
-        
+            error_message = f"Error de sintaxis en línea {current_line}: Token inesperado '{p.value}' de tipo '{p.type}'"
+        current_line = 1
         print(f"Capturando error sintáctico: {error_message}")
         parser_errors.append(error_message)
     else:
         error_message = "Error de sintaxis: Fin inesperado de entrada. Verifique que todas las declaraciones terminen con punto y coma (;) y que todas las llaves estén cerradas"
         print(f"Capturando error sintáctico: {error_message}")
         parser_errors.append(error_message)
+        current_line = 1
+
+    # Stop the analysis immediately
+    raise SyntaxError(error_message)
 
 
+def p_statement_newline(p):
+    '''statement : NEWLINE'''
+    global current_line
+    current_line += 1
+    pass  # We just ignore line breaks, they don't cause errors
 
 ''' 
     Main program to test the parser
@@ -357,7 +376,7 @@ def p_error(p):
     EG. dart > var name = "Dart";
 '''
 
-# CONTRIBUCION: CARLOS SALAZAR
+# CONTRIBUTION: CARLOS SALAZAR
 
 # Rule for print statement
 def p_statement_print(p):
@@ -370,7 +389,7 @@ def p_statement_print(p):
 def p_statement_input(p):
     '''expression : STDIN DOT READLINESYNC LPAREN RPAREN'''
     entrada = input("Entrada del usuario: ")
-    p[0] = entrada  # Siempre devuelve string, podría extenderse con cast
+    p[0] = entrada  # Always returns string, could be extended with cast
     print(f"Entrada registrada: '{entrada}' (tipo: {type(entrada).__name__})")
 
     
@@ -380,16 +399,16 @@ def p_statement_List(p):
                  | LIST LT type GT ID ASSIGN LBRACKET group RBRACKET SEMI
                  | LIST ID ASSIGN LBRACKET group RBRACKET SEMI'''
     
-    if len(p) == 10:  # Lista vacía
+    if len(p) == 10:  # Empty list
         nombre_var = p[5] if p.slice[1].type == 'LIST' else p[2]
         tabla_simbolos['var'][nombre_var] = {'type': 'list', 'value': []}
         print(f"Declarando lista vacía '{nombre_var}'")
     
-    else:  # Lista con elementos
+    else:  # List with elements
         nombre_var = p[5] if p.slice[1].type == 'LIST' else p[2]
         elementos = p[8] if p.slice[1].type == 'LIST' else p[6]
         
-        # Aplicar regla semántica de Carlos: validar tipos de elementos
+        # Apply Carlos's semantic rule: validate element types
         if validate_list_declaration(nombre_var, elementos):
             tabla_simbolos['var'][nombre_var] = {'type': 'list', 'value': elementos}
             print(f"Declarando lista '{nombre_var}' con elementos {elementos}")
@@ -409,13 +428,13 @@ def p_statement_while(p):
     body = p[6]
     print(f"Bucle 'while' encontrado con condición: {condition}")
     print(f"Cuerpo del while: {body}")
-    # Aplicar regla semántica de Melissa: validar condición booleana
+    # Apply Melissa's semantic rule: validate boolean condition
     validate_loop_condition(condition, "while")
-    # Análisis semántico: verificar posible bucle infinito
+    # Semantic analysis: check for possible infinite loop
     if condition == True:
         print("Advertencia: Condición siempre verdadera - posible bucle infinito")
 
-# CONTRIBUCION: NOELIA PASACA
+# CONTRIBUTION: NOELIA PASACA
 
 # Rule for for statement (traditional for loop)
 def p_statement_for_traditional(p):
@@ -461,7 +480,7 @@ def p_statement_map(p):
         nombre_var = p[7]
         entradas = p[10]
         
-        # Aplicar regla semántica de Carlos: validar tipos de claves
+        # Apply Carlos's semantic rule: validate key types
         if validate_map_key_types(nombre_var, entradas):
             tabla_simbolos['var'][nombre_var] = {'type': 'map', 'value': dict(entradas)}
             print(f"Declarando mapa '{nombre_var}' de tipo {p[2]}<{p[3]}, {p[5]}> con entradas {entradas}")
@@ -554,26 +573,76 @@ def p_param(p):
 def p_program(p):
     '''program : statements'''
     p[0] = p[1]
+    
+def p_statement_empty(p):
+    '''statement : '''
+    pass
 
 def p_statements_multiple(p):
     '''statements : statements statement'''
-    p[0] = p[1] + [p[2]]
+    if p[2] is not None:
+        p[0] = p[1] + [p[2]]
+    else:
+        p[0] = p[1]
 
 def p_statements_single(p):
     '''statements : statement'''
-    p[0] = [p[1]]
+    if p[1] is not None:
+        p[0] = [p[1]]
+    else:
+        p[0] = []
 
 parser = yacc.yacc(start='program')
+
+def parse_code(code):
+    """Función para parsear código con mejor manejo de errores"""
+    global current_line
+
+    
+    # Reset counters
+    current_line = 1
+    lexer.lineno = 1
+    lexer.lexpos = 0
+    parser_errors.clear()
+    semantic_errors.clear()
+    # Reset symbol table
+    tabla_simbolos['var'].clear()
+    tabla_simbolos['clases'].clear()
+
+    parser.restart()
+    
+    try:
+        # Clean up trailing empty lines from your code
+        code = code.strip()
+        if not code:
+            print("No hay código para analizar")
+            return None
+        if not code.endswith('\n'):
+            code += '\n'
+        result = parser.parse(code, lexer=lexer)
+        return result
+    except SyntaxError as e:
+        print(f"Análisis detenido por error sintáctico: {e}")
+        return None
+    except Exception as e:
+        print(f"Error inesperado durante el análisis: {e}")
+        return None
 
 def main():
     """Función principal que procesa archivos de prueba y crea logs"""
     print("=== Analizador Sintáctico para Dart ===")
     
-    # Procesar todos los archivos de prueba
+    # Process all test files
     results = process_test_directory_parser(parser)
     
+    # Reset counters
+    current_line = 1
+    lexer.lineno = 1
+    parser_errors.clear()
+    semantic_errors.clear()
+    
     if results:
-        # Crear archivo de log con los resultados
+        # Create log file with the results
         test_dir = "tests/dart_examples"
         dart_files = [os.path.join(test_dir, f) for f in os.listdir(test_dir) if f.endswith('.dart')]
         create_parser_log_file(results, dart_files)
@@ -587,15 +656,62 @@ if __name__ == "__main__":
         main()
     elif user_input == '2':
         print("=== Analizador Sintáctico en Línea ===")
-        print("Escribe tu código Dart y presiona Enter. Para salir, usa Ctrl+D (EOF).")
-        while True:
-            try:
-                s = input("dart > ")
-            except EOFError:
-                break
-            if not s: continue
-            result = parser.parse(s)
-            print(result)
+        print("Escribe tu código Dart. Termina con Ctrl+D (EOF) para analizar:")
+
+        code = ""
+        try:
+            while True:
+                line = input()
+                code += line + "\n"
+        except EOFError:
+            pass
+    
+        # Using the new parsing function
+        result = parse_code(code)
+        
+        
+        if result:
+            print("Análisis completado exitosamente")
+            print("Tabla de símbolos:", tabla_simbolos)
+             # Reset counters
+            current_line = 1
+            lexer.lineno = 1
+            parser_errors.clear()
+            semantic_errors.clear()
+        
+        # Show errors found
+        if parser_errors:
+            print("\nErrores sintácticos:")
+            for error in parser_errors:
+                print(f"  - {error}")
+            # Reset counters
+            current_line = 1
+            lexer.lineno = 1
+            parser_errors.clear()
+            semantic_errors.clear()
+        else:
+            print("\nNo hay errores sintácticos.")
+            current_line = 1
+
+            
+        if semantic_errors:
+            print("\nErrores semánticos:")
+            for error in semantic_errors:
+                print(f"  - {error}")
+            #  reset counters
+            current_line = 1
+            lexer.lineno = 1
+            parser_errors.clear()
+            semantic_errors.clear()
+
+        else:
+            print("\nNo hay errores semánticos.")
+            # Reset counters
+            current_line = 1
+            lexer.lineno = 1
+            parser_errors.clear()
+            semantic_errors.clear()
+
     else:
         print("Opción no válida. Saliendo...")
         exit(1)

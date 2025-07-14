@@ -17,13 +17,13 @@ Functions and literals are defined here for tokenization.
 The lexer will recognize these tokens in the input data.
 '''
 
-# CONTRIBUCION: MELISSA AYLLON
+# CONTRIBUTION: MELISSA AYLLON
 t_ignore = ' \t'
 
 def t_NEWLINE(t):
     r'\n+'
-    t.lexer.lineno += len(t.value)  # Asegúrate de actualizar el número de línea
-    return None  # No devuelve un token, solo lo omite
+    t.lexer.lineno += len(t.value)
+    return t
 
 
 def t_ID(t):
@@ -56,19 +56,20 @@ def t_RBRACKET(t):
     t.type = 'RBRACKET'
     return t
 
-lexer_errors = []  # Lista para almacenar errores léxicos
-# Errores léxicos
+lexer_errors = []  # List for storing lexical errors
+# Lexical errors
 def t_error(t):
-    error_message = "'%s' (illegal character)" % t.value[0]
-    lexer_errors.append(error_message)  # Guardamos el error en lexer_errors
-    print(error_message)  # Opción de depuración
-    t.type = 'ILLEGAL'
+    error_message = f"Caracter ilegal '{t.value[0]}' en línea {t.lexer.lineno}, posición {t.lexpos}"
+    lexer_errors.append(error_message)
+    print(error_message)
     t.lexer.skip(1)
-    return "'%s'" % t.value[0] + " (illegal character)"
+    return error_message
 
 
 
-# CONTRIBUCION: NOELIA PASACA
+
+
+# CONTRIBUTION: NOELIA PASACA
 
 def t_CUSTOM_TYPE(t):
     r'\b([A-Z][a-zA-Z0-9]*)\b'  # Identifiers that start with an uppercase letter
@@ -86,7 +87,7 @@ def t_MINUS(t):
     t.type = 'MINUS'
     return t
 
-# CONTRIBUCION: CARLOS SALAZAR
+# CONTRIBUTION: CARLOS SALAZAR
 def t_COMMENT_SINGLE_LINE(t):
     r'//.*'
     # Single-line comment, ignore it
@@ -98,7 +99,7 @@ def t_COMMENT_MULTI_LINE(t):
     t.lexer.lineno += t.value.count('\n')
     pass
 
-# CONTRIBUCION: NOELIA PASACA
+# CONTRIBUTION: NOELIA PASACA
 def t_EQ(t):
     r'=='
     t.type = 'EQ'
@@ -141,7 +142,7 @@ def t_NOT(t):
 
 
 
-# CONTRIBUCION: CARLOS SALAZAR
+# CONTRIBUTION: CARLOS SALAZAR
 
 def t_DOUBLE(t):
     r'\b\d+\.\d+\b'  # Matches floating-point numbers
@@ -203,26 +204,29 @@ def t_RBRACE(t):
     t.type = 'RBRACE'
     return t
 
-# CONTRIBUCION: NOELIA PASACA
+# CONTRIBUTION: NOELIA PASACA
 def t_DOT(t):
     r'\.'
     t.type = 'DOT'
     return t
 
-# CONTRIBUCION: NOELIA PASACA
+# CONTRIBUTION: NOELIA PASACA
 def t_COLON(t):
     r':'
     t.type = 'COLON'
     return t
 
-# Crear el objeto lexer global: para que reconozca el parser
+# Create the global lexer object: so that it recognizes the parser
 lexer = lex.lex()
 lexer.lineno = 1 
 #--- Function to get tokens from input data
 def get_tokens(data):
     # Build the lexer
     global lexer
-    lexer.lineno = 1  # Reiniciar contador para cada análisis
+    lexer.lineno = 1  # Reset counter for each analysis
+    
+    # Clean up previous errors
+    lexer_errors.clear()
     
     # Give the lexer some input
     lexer.input(data)
@@ -240,6 +244,22 @@ def get_tokens(data):
 Testing the lexer with a sample input
 and writing the tokens to a log file.
 '''
+
+# Function to analyze a specific line
+def analyze_line(line_content, line_number):
+    """Analiza una línea específica de código"""
+    global lexer
+    lexer.lineno = line_number
+    lexer.input(line_content)
+    
+    tokens = []
+    while True:
+        tok = lexer.token()
+        if not tok:
+            break
+        tokens.append(tok)
+    
+    return tokens
 
 def read_dart_file(file_path):
     try:
